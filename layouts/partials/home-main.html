@@ -1,0 +1,44 @@
+{{- $author := site.Params.author | default dict -}}
+{{- $authorName := $author.name | default site.Title -}}
+{{- $bio := $author.bio | default "" -}}
+{{- $authorBio := $bio | default site.Params.description | default "" -}}
+{{- $avatar := $author.avatar | default "" -}}
+{{- $content := .Content -}}
+{{- $hasContent := and $content (ne (strings.TrimSpace (string $content)) "") -}}
+{{- $leadBio := "" -}}
+{{- if and $hasContent $bio -}}
+  {{- $bioText := $bio | replaceRE `\s+` " " | strings.TrimSpace -}}
+  {{- $contentText := $content | plainify | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace -}}
+  {{- $isDuplicate := and $bioText $contentText (in $contentText $bioText) -}}
+  {{- if and $bioText (not $isDuplicate) -}}{{- $leadBio = $bio -}}{{- end -}}
+{{- end -}}
+<div class="home-page reading-column">
+  <div class="home-thread" data-inline-comments-body>
+    <section class="home-message home-message--title" aria-labelledby="home-title">
+      <div class="home-message__bubble">
+        <h1 class="home-message__title" id="home-title">{{ .Title | default site.Title }}</h1>
+      </div>
+    </section>
+    {{- if or $hasContent $authorBio }}
+    <section class="home-message home-message--summary" aria-label="{{ $authorName }}">
+      <div class="home-message__avatar-wrap">
+        {{- if $avatar }}
+        <img class="avatar avatar--message" src="{{ partial "site-url.html" $avatar }}" alt="" width="30" height="30">
+        {{- else }}
+        <span class="avatar avatar--message avatar--fallback" aria-hidden="true">{{ substr $authorName 0 1 }}</span>
+        {{- end }}
+      </div>
+      <div class="home-message__body">
+        {{- if $hasContent }}
+        {{- with $leadBio }}
+        <p class="home-message__bio home-message__bio--lead">{{ . }}</p>
+        {{- end }}
+        <div class="home-message__summary">{{ $content }}</div>
+        {{- else }}
+        <p class="home-message__bio">{{ $authorBio }}</p>
+        {{- end }}
+      </div>
+    </section>
+    {{- end }}
+  </div>
+</div>

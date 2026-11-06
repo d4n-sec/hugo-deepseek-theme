@@ -1,0 +1,48 @@
+{{- /* Normalize legacy Markdown-escaped W/w subscripts only on opted-in pages. */ -}}
+{{- $chars := split . "" -}}
+{{- $output := "" -}}
+{{- $skip := false -}}
+{{- $escaped := false -}}
+{{- $depth := 0 -}}
+{{- $protectedDepth := -1 -}}
+{{- $textCommands := slice `\text` `\texttt` `\textrm` `\textsf` `\textbf` `\textit` `\textmd` `\textup` `\textsc` `\textnormal` `\mbox` `\operatorname` `\mathrm` `\mathtt` -}}
+{{- range $i, $char := $chars -}}
+  {{- if $skip -}}
+    {{- $skip = false -}}
+  {{- else if $escaped -}}
+    {{- $output = printf "%s%s" $output $char -}}
+    {{- $escaped = false -}}
+  {{- else if eq $char `\` -}}
+    {{- $next := "" -}}
+    {{- $subscript := "" -}}
+    {{- $previous := "" -}}
+    {{- $beforePrevious := "" -}}
+    {{- if lt (add $i 1) (len $chars) }}{{ $next = index $chars (add $i 1) }}{{ end -}}
+    {{- if lt (add $i 2) (len $chars) }}{{ $subscript = index $chars (add $i 2) }}{{ end -}}
+    {{- if gt $i 0 }}{{ $previous = index $chars (sub $i 1) }}{{ end -}}
+    {{- if gt $i 1 }}{{ $beforePrevious = index $chars (sub $i 2) }}{{ end -}}
+    {{- $isolated := and (not (findRE `^[A-Za-z0-9_]$` $beforePrevious)) (ne $beforePrevious `\`) -}}
+    {{- $isSubscript := or (eq $subscript "{") (findRE `^[0-9]$` $subscript) -}}
+    {{- if and (lt $protectedDepth 0) $isolated (or (eq $previous "W") (eq $previous "w")) (eq $next "_") $isSubscript -}}
+      {{- $output = printf "%s_" $output -}}
+      {{- $skip = true -}}
+    {{- else -}}
+      {{- $output = printf "%s%s" $output $char -}}
+      {{- $escaped = true -}}
+    {{- end -}}
+  {{- else -}}
+    {{- if eq $char "{" -}}
+      {{- $depth = add $depth 1 -}}
+      {{- if lt $protectedDepth 0 -}}
+        {{- range $textCommands -}}
+          {{- if strings.HasSuffix $output . }}{{ $protectedDepth = $depth }}{{ end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- else if eq $char "}" -}}
+      {{- if eq $protectedDepth $depth }}{{ $protectedDepth = -1 }}{{ end -}}
+      {{- if gt $depth 0 }}{{ $depth = sub $depth 1 }}{{ end -}}
+    {{- end -}}
+    {{- $output = printf "%s%s" $output $char -}}
+  {{- end -}}
+{{- end -}}
+{{- return $output -}}

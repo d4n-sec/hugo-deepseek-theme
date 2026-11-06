@@ -1,0 +1,16 @@
+<section class="article-view trajectory-view" id="trajectory-panel" role="tabpanel" aria-labelledby="view-tab-trajectory" data-view-panel="trajectory" hidden>
+  <div class="trajectory" data-trajectory-root>
+    <div class="trajectory__pending" data-trajectory-pending>
+      <span class="trajectory__pending-mark" aria-hidden="true">{{ partial "icon.html" (dict "name" "timeline" "size" 18) }}</span>
+      <span>{{ i18n "trajectory_loading" }}</span>
+    </div>
+    <div class="trajectory__empty" data-trajectory-empty hidden>
+      <div class="trajectory__empty-mark" aria-hidden="true">{{ partial "icon.html" (dict "name" "timeline" "size" 22) }}</div>
+      <div class="trajectory__empty-copy">
+        <h2 class="trajectory__empty-title">{{ i18n "trajectory_empty_title" }}</h2>
+        <p class="trajectory__empty-hint">{{ i18n "trajectory_empty_hint" }}</p>
+      </div>
+    </div>
+    <div class="trajectory__content" data-trajectory-content hidden></div>
+  </div>
+</section>

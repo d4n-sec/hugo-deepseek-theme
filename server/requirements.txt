@@ -1,0 +1,2 @@
+# This service has no third-party dependencies.
+# It requires Python 3.11 or newer and uses only the standard library.

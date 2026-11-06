@@ -1,0 +1,63 @@
+{{- $isHome := .IsHome -}}
+{{- $displayTitle := .Title -}}
+{{- if eq .Kind "404" -}}{{- $displayTitle = i18n "page_not_found" -}}{{- end -}}
+{{- $pageTitle := cond $isHome site.Title (printf "%s · %s" $displayTitle site.Title) -}}
+{{- $description := "" -}}
+{{- with .Description -}}
+  {{- $description = . | plainify | chomp -}}
+{{- else -}}
+  {{- with site.Params.description -}}
+    {{- $description = . | plainify | chomp -}}
+  {{- else -}}
+    {{- with .Summary -}}
+      {{- $description = . | plainify | replaceRE `\s+` " " | chomp | truncate 160 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $canonical := .Permalink | default site.Home.Permalink -}}
+{{- $ogImage := "" -}}
+{{- with .Params.images -}}
+  {{- $ogImage = index . 0 -}}
+{{- else -}}
+  {{- with site.Params.ogImage -}}
+    {{- $ogImage = . -}}
+  {{- else -}}
+    {{- with site.Params.author.avatar -}}
+      {{- $ogImage = . -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $favicon := site.Params.favicon | default "images/favicon.svg" -}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ $pageTitle }}</title>
+{{- with $description }}
+<meta name="description" content="{{ . }}">
+{{- end }}
+<link rel="canonical" href="{{ $canonical }}">
+{{- if eq .Kind "404" }}
+<meta name="robots" content="noindex">
+{{- end }}
+<meta property="og:type" content="{{ cond .IsPage "article" "website" }}">
+<meta property="og:title" content="{{ cond $isHome site.Title $displayTitle }}">
+<meta property="og:site_name" content="{{ site.Title }}">
+<meta property="og:url" content="{{ $canonical }}">
+<meta property="og:locale" content="{{ replace (site.Language.Locale | default site.Language.Lang) "-" "_" }}">
+{{- with $description }}
+<meta property="og:description" content="{{ . }}">
+{{- end }}
+{{- with $ogImage }}
+<meta property="og:image" content="{{ partial "site-url.html" . | absURL }}">
+{{- end }}
+<meta name="twitter:card" content="{{ if $ogImage }}summary_large_image{{ else }}summary{{ end }}">
+<link rel="icon" href="{{ partial "site-url.html" $favicon }}" type="image/svg+xml">
+<script>document.documentElement.classList.replace('no-js', 'js');</script>
+{{- $styles := resources.Match "css/*.css" -}}
+{{- if $styles -}}
+  {{- $styles = sort $styles "Name" -}}
+  {{- $stylesheet := $styles | resources.Concat "css/threadline.css" | minify | fingerprint -}}
+  <link rel="stylesheet" href="{{ $stylesheet.RelPermalink }}" integrity="{{ $stylesheet.Data.Integrity }}">
+{{- end }}
+{{- with .OutputFormats.Get "rss" }}
+<link rel="alternate" type="{{ .MediaType.Type }}" href="{{ .RelPermalink }}" title="{{ site.Title }}">
+{{- end }}

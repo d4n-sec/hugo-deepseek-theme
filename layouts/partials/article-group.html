@@ -1,0 +1,17 @@
+{{- $hasCurrent := false -}}
+{{- range .pages }}{{ if eq .RelPermalink $.currentPage.RelPermalink }}{{ $hasCurrent = true }}{{ end }}{{ end -}}
+<section class="timeline__group{{ if $hasCurrent }} has-current{{ end }}{{ if .defaultCollapsed }} is-collapsed{{ end }}" data-article-group data-group-key="{{ .key }}" data-default-collapsed="{{ if .defaultCollapsed }}true{{ else }}false{{ end }}">
+  <h3 class="timeline__group-heading">
+    <button class="timeline__group-toggle js-only" type="button" data-group-toggle aria-expanded="{{ if .defaultCollapsed }}false{{ else }}true{{ end }}" aria-controls="{{ .id }}">
+      <span class="timeline__group-chevron">{{ partial "icon.html" "chevron-down" }}</span>
+      <span class="timeline__group-folder">{{ partial "icon.html" "folder" }}</span>
+      <span class="timeline__group-label">{{ .label }}</span>
+    </button>
+    <span class="timeline__group-static nojs-only"><span class="timeline__group-folder">{{ partial "icon.html" "folder" }}</span><span>{{ .label }}</span></span>
+  </h3>
+  <div class="timeline__group-body" id="{{ .id }}">
+    <ul class="article-list" role="list">
+      {{- range .pages }}{{ partial "article-index-item.html" (dict "page" . "currentPage" $.currentPage "dateFormat" $.dateFormat) }}{{ end }}
+    </ul>
+  </div>
+</section>

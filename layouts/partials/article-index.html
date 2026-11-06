@@ -1,0 +1,94 @@
+{{- $sections := site.Params.mainSections | default (slice "posts") -}}
+{{- $posts := (where site.RegularPages "Section" "in" $sections).ByPublishDate.Reverse -}}
+{{- $dateFormat := site.Params.listDateFormat | default "01 · 02" -}}
+{{- $recordDateFormat := site.Params.dateFormat | default "2006-01-02" -}}
+{{- $monthKeys := slice "january" "february" "march" "april" "may" "june" "july" "august" "september" "october" "november" "december" -}}
+{{- $untagged := slice -}}
+{{- $searchRecords := slice -}}
+{{- range $posts -}}
+  {{- $terms := .GetTerms "tags" -}}
+  {{- if not $terms }}{{ $untagged = $untagged | append . }}{{ end -}}
+  {{- $names := slice -}}
+  {{- range $terms }}{{ $names = $names | append .LinkTitle }}{{ end -}}
+  {{- $published := .PublishDate | default .Date -}}
+  {{- $searchRecords = $searchRecords | append (dict
+    "key" .RelPermalink
+    "title" .Title
+    "tags" $names
+    "text" (printf "%s %s %s" .Title (delimit $names " ") .Plain)
+    "date" ($published.Format "2006-01-02")
+    "dateLabel" ($published.Format $recordDateFormat)
+  ) -}}
+{{- end -}}
+{{- $searchJSON := $searchRecords | jsonify | replaceRE "</" "<\\/" -}}
+<section class="article-index" data-article-index aria-labelledby="article-index-title" data-search-result-label="{{ i18n "articles" }}" data-reader-thinking-label="{{ i18n "thinking" }}" data-reader-skip-label="{{ i18n "skip_animation" }}">
+  <div class="article-index__head">
+    <h2 class="article-index__title" id="article-index-title">{{ i18n "articles" }}</h2>
+    {{- if $posts }}
+    <button class="icon-button article-index__search-toggle js-only" type="button" data-index-search-toggle aria-controls="article-index-search" aria-haspopup="dialog" aria-expanded="false" aria-label="{{ i18n "search_articles" }}" title="{{ i18n "search_articles" }}">{{ partial "icon.html" "search" }}</button>
+    <div class="article-index__views" role="tablist" aria-label="{{ i18n "article_views" }}">
+      <button class="icon-button article-index__view is-active" type="button" role="tab" id="article-view-timeline" aria-selected="true" aria-controls="article-timeline-panel" data-article-view="timeline" aria-label="{{ i18n "view_timeline" }}" title="{{ i18n "view_timeline" }}">{{ partial "icon.html" "timeline" }}</button>
+      <button class="icon-button article-index__view" type="button" role="tab" id="article-view-tags" aria-selected="false" aria-controls="article-tag-panel" data-article-view="tags" tabindex="-1" aria-label="{{ i18n "view_tags" }}" title="{{ i18n "view_tags" }}">{{ partial "icon.html" "tag" }}</button>
+    </div>
+    {{- end }}
+  </div>
+  {{- if $posts }}
+  <div class="article-index__pinned js-only" data-index-pinned hidden>
+    <span class="article-index__pinned-label">{{ i18n "search_sidebar_results" }}</span>
+    <span class="article-index__pinned-query" data-index-pinned-query></span>
+    <button class="article-index__unpin" type="button" data-index-unpin aria-label="{{ i18n "search_unpin" }}" title="{{ i18n "search_unpin" }}">{{ partial "icon.html" "x" }}</button>
+  </div>
+  <p class="article-index__pinned-empty js-only" data-index-pinned-empty role="status" hidden>{{ i18n "no_matching_search" }}</p>
+  <dialog class="article-search-dialog js-only" id="article-index-search" data-index-search aria-modal="true" aria-label="{{ i18n "search_dialog_label" }}" data-result-count-template="{{ i18n "search_result_count" }}" data-open-result-label="{{ i18n "search_open_result" }}" hidden>
+    <div class="article-search__bar" role="search">
+      <span class="article-search__icon" aria-hidden="true">{{ partial "icon.html" "search" }}</span>
+      <label class="sr-only" for="article-index-query">{{ i18n "search_articles" }}</label>
+      <input class="article-search__input" id="article-index-query" type="search" data-index-query placeholder="{{ i18n "search_placeholder" }}" autocomplete="off" aria-controls="article-index-results" aria-describedby="article-index-search-count">
+      <button class="article-search__action" type="button" data-index-clear aria-label="{{ i18n "clear_search" }}" title="{{ i18n "clear_search" }}" hidden>{{ partial "icon.html" "x" }}</button>
+      <button class="article-search__action" type="button" data-index-close aria-label="{{ i18n "search_close" }}" title="{{ i18n "search_close" }}">{{ partial "icon.html" "arrow-left" }}</button>
+    </div>
+    <div class="article-search__body" data-index-search-body hidden>
+      <div class="article-search__results-head">
+        <p class="article-search__count" id="article-index-search-count" data-index-result-count role="status" aria-live="polite" aria-atomic="true"></p>
+        <button class="article-search__pin" type="button" data-index-pin data-pin-label="{{ i18n "search_pin" }}" data-unpin-label="{{ i18n "search_pin_cancel" }}" aria-pressed="false" aria-label="{{ i18n "search_pin" }}">{{ partial "icon.html" "pin" }}</button>
+      </div>
+      <div class="article-search__scroll">
+        <ul class="article-search__results" id="article-index-results" data-index-results role="list" aria-label="{{ i18n "search_results_label" }}"></ul>
+        <p class="article-search__empty" data-index-search-empty hidden>
+          <span class="article-search__empty-title">{{ i18n "no_matching_search" }}</span>
+          <span class="article-search__empty-hint">{{ i18n "search_no_results_hint" }}</span>
+        </p>
+      </div>
+    </div>
+  </dialog>
+  <div class="article-index__panels">
+    <div class="article-index__panel" id="article-timeline-panel" role="tabpanel" aria-labelledby="article-view-timeline" data-article-panel="timeline">
+      {{- range $i, $group := sort ($posts.GroupByPublishDate "2006-01") "Key" "desc" -}}
+        {{- $pages := $group.Pages.ByPublishDate.Reverse -}}
+        {{- $date := (index $pages 0).PublishDate -}}
+        {{- $monthKey := index $monthKeys (sub (int ($date.Format "1")) 1) -}}
+        {{- $month := i18n $monthKey | default ($date.Format "January") -}}
+        {{- $label := printf "%s · %s" ($date.Format "2006") $month -}}
+        {{ partial "article-group.html" (dict "id" (printf "timeline-%s" $group.Key) "key" (printf "time:%s" $group.Key) "label" $label "pages" $pages "currentPage" $ "dateFormat" $dateFormat "defaultCollapsed" (ne $i 0)) }}
+      {{- end }}
+    </div>
+    <div class="article-index__panel" id="article-tag-panel" role="tabpanel" aria-labelledby="article-view-tags" data-article-panel="tags" hidden>
+      {{- range $i, $term := site.Taxonomies.tags.Alphabetical -}}
+        {{- $pages := (where $term.Pages "Section" "in" $sections).ByPublishDate.Reverse -}}
+        {{- if $pages -}}
+          {{ partial "article-group.html" (dict "id" (printf "tag-%d" $i) "key" (printf "tag:%s" $term.Page.RelPermalink) "label" $term.Page.LinkTitle "pages" $pages "currentPage" $ "dateFormat" $dateFormat "defaultCollapsed" true) }}
+        {{- end -}}
+      {{- end -}}
+      {{- if $untagged -}}
+        {{ partial "article-group.html" (dict "id" "tag-untagged" "key" "tag:untagged" "label" (i18n "untagged") "pages" $untagged "currentPage" $ "dateFormat" $dateFormat "defaultCollapsed" true) }}
+      {{- end }}
+    </div>
+  </div>
+  <script type="application/json" data-article-search-data>{{ $searchJSON | safeJS }}</script>
+  <noscript>
+    {{- with site.GetPage "/tags" }}<p class="article-index__noscript"><a href="{{ .RelPermalink }}">{{ i18n "all_tags" }}</a></p>{{ end -}}
+  </noscript>
+  {{- else }}
+  <p class="article-index__empty">{{ i18n "no_articles" }}</p>
+  {{- end }}
+</section>

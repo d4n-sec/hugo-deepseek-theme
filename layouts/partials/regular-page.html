@@ -1,0 +1,53 @@
+{{- $author := site.Params.author | default dict -}}
+{{- $authorName := $author.name | default site.Title -}}
+{{- $avatar := $author.avatar | default "" -}}
+<article class="page-page">
+  <div class="reading-column reading-column--narrow">
+    <header class="page-header">
+      <p class="page-header__eyebrow">{{ site.Title }}</p>
+      <h1 class="page-title">{{ .Title }}</h1>
+      {{- with .Description }}<p class="page-description">{{ . }}</p>{{ end }}
+    </header>
+    <div class="page-prose article-prose">
+      {{ .Content }}
+      {{- with .Params.links }}
+      <div class="friend-links">
+        {{- range . }}
+        {{- $website := .website | default "" -}}
+        {{- $image := .image | default "" -}}
+        {{- $validURL := or (hasPrefix $website "https://") (hasPrefix $website "http://") -}}
+        {{- $validImage := or (hasPrefix $image "https://") (hasPrefix $image "http://") -}}
+        {{- if $validURL }}
+        <a class="friend-link" href="{{ $website }}" target="_blank" rel="noopener noreferrer">
+          {{- if $validImage }}
+          <img class="friend-link__avatar" src="{{ $image }}" alt="" width="42" height="42" loading="lazy" decoding="async">
+          {{- else }}
+          <span class="friend-link__avatar friend-link__avatar--fallback" aria-hidden="true">{{ substr (.title | default "?") 0 1 }}</span>
+          {{- end }}
+          <span class="friend-link__body">
+            <span class="friend-link__title">{{ .title }}</span>
+            {{- with .description }}<span class="friend-link__description">{{ . }}</span>{{ end }}
+          </span>
+          <span class="friend-link__external">{{ partial "icon.html" "external" }}<span class="sr-only">{{ i18n "open_external" }}</span></span>
+        </a>
+        {{- end }}
+        {{- end }}
+      </div>
+      {{- end }}
+    </div>
+    <footer class="page-footer">
+      <div class="page-footer__author">
+        {{- if $avatar }}
+        <img class="avatar avatar--message" src="{{ partial "site-url.html" $avatar }}" alt="" width="30" height="30">
+        {{- else }}
+        <span class="avatar avatar--message avatar--fallback" aria-hidden="true">{{ substr $authorName 0 1 }}</span>
+        {{- end }}
+        <div>
+          <span>{{ $authorName }}</span>
+          {{- with $author.role }}<span class="page-footer__role">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ partial "social-links.html" . }}
+    </footer>
+  </div>
+</article>

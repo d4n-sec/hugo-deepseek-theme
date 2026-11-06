@@ -1,0 +1,25 @@
+{{- $source := .Inner -}}
+{{- $legacyPages := slice -}}
+{{- with site.Params.math -}}
+  {{- with index . "legacyescapedsubscriptpages" }}{{ $legacyPages = . }}{{ end -}}
+{{- end -}}
+{{- $path := "" -}}
+{{- with .Page.File }}{{ $path = .Path }}{{ end -}}
+{{- if and $path (in $legacyPages $path) (not (strings.Contains $source `\verb`)) -}}
+  {{- $source = partial "math/legacy-escaped-subscripts.html" $source -}}
+{{- end -}}
+{{- $block := eq .Type "block" -}}
+{{- $options := dict "displayMode" $block "strict" "ignore" -}}
+{{- with try (transform.ToMath $source $options) -}}
+  {{- with .Err -}}
+    {{- warnf "Unable to render a math expression at %s; preserving its source." $.Position -}}
+    {{- if $block -}}<div class="math-block math-error" data-reader-math><code>{{ printf "$$%s$$" $.Inner }}</code></div>
+    {{- else -}}<span class="math-inline math-error" data-reader-math><code>{{ printf "$%s$" $.Inner }}</code></span>{{- end -}}
+  {{- else -}}
+    {{- /* The presentation MathML is accessible on its own. Removing the TeX
+          annotation prevents hidden duplicate text in search and quote offsets. */ -}}
+    {{- $math := .Value | replaceRE `(?s)<annotation\b[^>]*>.*?</annotation>` "" | safeHTML -}}
+    {{- if $block -}}<div class="math-block" data-reader-math>{{ $math }}</div>
+    {{- else -}}<span class="math-inline" data-reader-math>{{ $math }}</span>{{- end -}}
+  {{- end -}}
+{{- end -}}

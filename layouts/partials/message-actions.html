@@ -1,0 +1,28 @@
+{{- $pageCommentsDisabled := and (isset .Params "comments") (eq (printf "%v" .Params.comments) "false") -}}
+{{- $reactionsNote := i18n "reactions_pending" -}}
+<div class="message-actions" role="group" aria-label="{{ i18n "message_actions" }}" data-message-actions>
+  <div class="message-actions__buttons">
+    <button class="message-action" type="button" data-action="copy" disabled title="{{ i18n "copy_article" }}">
+      {{ partial "icon.html" "copy" }}
+      <span>{{ i18n "copy" }}</span>
+    </button>
+    <button class="message-action" type="button" data-action="share" disabled title="{{ i18n "share" }}">
+      {{ partial "icon.html" "share" }}
+      <span>{{ i18n "share" }}</span>
+    </button>
+    {{- if not $pageCommentsDisabled }}
+    <span class="message-actions__divider" aria-hidden="true"></span>
+    <button class="message-action" type="button" data-action="like" data-reaction="like" disabled aria-describedby="message-actions-note" title="{{ $reactionsNote }}">
+      {{ partial "icon.html" "thumb-up" }}
+      <span>{{ i18n "like" }}</span>
+      <span class="message-action__count" data-reaction-count>—</span>
+    </button>
+    <button class="message-action" type="button" data-action="dislike" data-reaction="dislike" disabled aria-describedby="message-actions-note" title="{{ $reactionsNote }}">
+      {{ partial "icon.html" "thumb-down" }}
+      <span>{{ i18n "dislike" }}</span>
+      <span class="message-action__count" data-reaction-count>—</span>
+    </button>
+    {{- end }}
+  </div>
+  {{- if not $pageCommentsDisabled }}<p class="message-actions__note" id="message-actions-note" data-reactions-note>{{ $reactionsNote }}</p>{{ end }}
+</div>

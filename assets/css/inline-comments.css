@@ -1,0 +1,266 @@
+/* Threadline: selection comments, pending quote chips, and located quote
+   highlights. The highlight rules rely on the CSS Custom Highlight API and
+   never modify article text or markup. */
+
+/* Floating selection action ------------------------------------------------ */
+
+.threadline-selection-action {
+  position: fixed;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  max-width: min(260px, calc(100vw - 16px));
+  padding: 7px 11px;
+  border: 1px solid rgba(65, 118, 230, 0.18);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    0 8px 24px rgba(16, 24, 40, 0.12);
+  color: var(--color-blue);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.threadline-selection-action::before {
+  margin-right: 5px;
+  color: rgba(65, 118, 230, 0.55);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 0.8;
+  content: "\201c";
+}
+
+.threadline-selection-action:hover {
+  border-color: rgba(65, 118, 230, 0.3);
+  background: var(--color-blue-soft);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.035),
+    0 10px 28px rgba(16, 24, 40, 0.14);
+}
+
+.threadline-selection-action[data-action-state="too-long"] {
+  border-color: rgba(167, 107, 24, 0.24);
+  background: #fffaf0;
+  color: #8a6327;
+  font-weight: 560;
+  cursor: default;
+}
+
+.threadline-selection-action[data-action-state="too-long"]::before {
+  color: rgba(167, 107, 24, 0.55);
+  content: "\201c";
+}
+
+/* Pending quote inside the live comment composer --------------------------- */
+
+.comment-quote-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  margin: 0 2px 8px;
+  padding: 7px 7px 7px 9px;
+  border: 1px solid rgba(65, 118, 230, 0.14);
+  border-radius: 11px;
+  background:
+    linear-gradient(100deg, rgba(237, 243, 254, 0.82), rgba(248, 251, 255, 0.92));
+}
+
+.comment-quote-chip__mark {
+  flex: 0 0 auto;
+  margin-top: -1px;
+  color: rgba(65, 118, 230, 0.5);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.comment-quote-chip__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.comment-quote-chip__label {
+  display: block;
+  overflow: hidden;
+  color: #5b76a8;
+  font-size: 10px;
+  font-weight: 620;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comment-quote-chip__text {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 2px 0 0;
+  color: var(--color-text-soft);
+  font-size: 11.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.comment-quote-chip__remove {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  line-height: 1;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.comment-quote-chip__remove:hover {
+  background: rgba(65, 118, 230, 0.1);
+  color: var(--color-blue);
+}
+
+.comment-quote-chip__remove:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 1px;
+}
+
+.comment-quote-chip__status {
+  flex-basis: 100%;
+  color: var(--color-text-muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+/* The comments template supplies the quote-toolbar/chip structure. Its
+   structural styles live in comments.css; this module adds state colours and
+   a fallback chip/status only. */
+
+.comment-card[data-comment-quote-state="unlocated"] .comment-card__quote {
+  border-left-color: rgba(167, 107, 24, 0.42);
+  background: rgba(255, 250, 240, 0.7);
+}
+
+/* Fallback status row for cards rendered without the template's quote block. */
+.comment-card > .comment-card__quote-status,
+.threadline-quote-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 2px 0;
+  color: var(--color-text-muted);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.comment-card > .comment-card__quote-status::before,
+.threadline-quote-status::before {
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+  opacity: 0.72;
+}
+
+.comment-card[data-comment-quote-state="located"] .comment-card__quote-head .comment-card__quote-status,
+.comment-card[data-comment-quote-state="located"] > .comment-card__quote-status,
+.comment-card[data-comment-quote-state="located"] .threadline-quote-status,
+.comment-card.is-quote-located > .comment-card__quote-status,
+.comment-card.is-quote-located .threadline-quote-status {
+  color: #4e729f;
+}
+
+.comment-card[data-comment-quote-state="unlocated"] .comment-card__quote-head .comment-card__quote-status,
+.comment-card[data-comment-quote-state="unlocated"] > .comment-card__quote-status,
+.comment-card[data-comment-quote-state="unlocated"] .threadline-quote-status,
+.comment-card.is-quote-unlocated > .comment-card__quote-status,
+.comment-card.is-quote-unlocated .threadline-quote-status {
+  color: var(--color-amber);
+}
+
+.comment-card.is-quote-unlocated {
+  border-color: rgba(167, 107, 24, 0.16);
+}
+
+.comment-card.is-quote-focused {
+  border-color: rgba(65, 118, 230, 0.28);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.03),
+    0 8px 24px rgba(65, 118, 230, 0.1);
+}
+
+/* CSS Custom Highlight API. Supported browsers paint these ranges without
+   wrapping, appending, or modifying any article DOM. */
+::highlight(threadline-quote) {
+  background-color: rgba(65, 118, 230, 0.16);
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(65, 118, 230, 0.48);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+
+::highlight(threadline-quote-active) {
+  background-color: rgba(65, 118, 230, 0.29);
+  color: inherit;
+  text-decoration-color: rgba(49, 95, 202, 0.68);
+}
+
+@media (max-width: 780px) {
+  .threadline-selection-action {
+    min-height: 32px;
+    max-width: min(230px, calc(100vw - 16px));
+    padding: 6px 9px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .comment-quote-chip {
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .comment-card > .comment-card__quote-status,
+  .threadline-quote-status {
+    margin-left: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .threadline-selection-action,
+  .comment-quote-chip__remove {
+    transition: none;
+  }
+}
+
+@media print {
+  .threadline-selection-action,
+  .comment-quote-chip,
+  .comment-composer__quote {
+    display: none !important;
+  }
+}

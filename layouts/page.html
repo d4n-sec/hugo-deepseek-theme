@@ -1,0 +1,9 @@
+{{ define "main" }}
+{{- $sections := site.Params.mainSections | default (slice "posts") -}}
+{{- $useArticleLayout := and .IsPage (in $sections .Section) (ne .Layout "page") -}}
+{{- if $useArticleLayout -}}
+  {{ partial "article-main.html" . }}
+{{- else -}}
+  {{ partial "regular-page.html" . }}
+{{- end -}}
+{{ end }}

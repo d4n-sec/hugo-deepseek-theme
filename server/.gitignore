@@ -1,0 +1,18 @@
+# Runtime data and local configuration.
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Python test/build caches.
+__pycache__/
+*.py[cod]
+.venv/
+.coverage
+htmlcov/
+.pytest_cache/

@@ -1,0 +1,48 @@
+{{- $social := site.Params.social | default dict -}}
+{{- $sidebar := false -}}
+{{- if reflect.IsMap . }}{{ $sidebar = eq .variant "sidebar" }}{{ end -}}
+{{- $links := slice -}}
+{{- with $social.github -}}
+  {{- $links = $links | append (dict "label" "GitHub" "url" . "icon" "github" "external" true) -}}
+{{- end -}}
+{{- with $social.x -}}
+  {{- $links = $links | append (dict "label" "X" "url" . "icon" "x" "external" true) -}}
+{{- end -}}
+{{- with $social.email -}}
+  {{- $links = $links | append (dict "label" (i18n "mail") "url" (printf "mailto:%s" .) "icon" "mail" "external" false) -}}
+{{- end -}}
+{{- if $social.rss -}}
+  {{- with site.Home.OutputFormats.Get "rss" -}}
+    {{- $links = $links | append (dict "label" "RSS" "url" .RelPermalink "icon" "rss" "external" false "absolute" .Permalink) -}}
+  {{- end -}}
+{{- end -}}
+{{- range $social.extra -}}
+  {{- $links = $links | append (dict "label" .label "url" .url "icon" (.icon | default "link") "external" true) -}}
+{{- end -}}
+{{- with $links }}
+<nav class="social-links{{ if $sidebar }} social-links--sidebar{{ end }}" aria-label="{{ i18n "social_links" }}">
+  {{- range . }}
+  {{- $isHTTP := or (hasPrefix .url "http://") (hasPrefix .url "https://") -}}
+  {{- $isMailto := hasPrefix .url "mailto:" -}}
+  {{- $absolute := .absolute | default "" -}}
+  {{- if not $absolute -}}
+    {{- if or $isHTTP $isMailto -}}
+      {{- $absolute = .url -}}
+    {{- else -}}
+      {{- $absolute = absURL .url -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $href := .url -}}
+  {{- if and (not $isHTTP) (not $isMailto) -}}{{- $href = partial "site-url.html" .url -}}{{- end -}}
+  {{- $accessibleName := printf "%s: %s" .label $absolute -}}
+  <a class="social-links__link" href="{{ $href }}"{{ if $isHTTP }} target="_blank" rel="noopener noreferrer"{{ end }} aria-label="{{ $accessibleName }}" title="{{ $accessibleName }}">
+    {{ partial "icon.html" .icon }}
+    <span class="social-links__tooltip" aria-hidden="true">
+      <span class="social-links__tooltip-name">{{ .label }}</span>
+      <span class="social-links__tooltip-url">{{ $absolute }}</span>
+    </span>
+    {{- if $isHTTP }}<span class="sr-only">{{ i18n "open_external" }}</span>{{ end -}}
+  </a>
+  {{- end }}
+</nav>
+{{- end }}

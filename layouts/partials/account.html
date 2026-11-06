@@ -1,0 +1,59 @@
+{{- $comments := site.Params.comments | default dict -}}
+{{- $backend := trim ($comments.backendURL | default "") " " -}}
+{{- $backend = replaceRE "/+$" "" $backend -}}
+{{- $looksLikeURL := or (hasPrefix $backend "http://") (hasPrefix $backend "https://") -}}
+{{- $configured := and (ne $backend "") $looksLikeURL -}}
+{{- $invalid := and (ne $backend "") (not $looksLikeURL) -}}
+{{- $returnTo := .Permalink | default site.Home.Permalink -}}
+{{- $loginURL := "" -}}
+{{- if $configured -}}
+  {{- $loginURL = printf "%s/api/auth/github?returnTo=%s" $backend (urlquery $returnTo) -}}
+{{- end -}}
+{{- $accountStrings := dict
+  "accountLoading" (i18n "comments_account_loading")
+  "accountGuest" (i18n "comments_account_guest")
+  "accountGuestHint" (i18n "comments_account_guest_hint")
+  "accountSignedIn" (i18n "comments_account_signed_in")
+  "accountUnavailable" (i18n "comments_account_unavailable")
+  "accountUnavailableHint" (i18n "comments_account_unavailable_hint")
+  "loginLink" (i18n "comments_login_link")
+  "loginShort" (i18n "comments_login_short")
+  "loginHint" (i18n "comments_login_hint")
+  "loginUnconfigured" (i18n "comments_login_unconfigured")
+  "loginUnconfiguredHint" (i18n "comments_login_unconfigured_hint")
+  "logout" (i18n "comments_logout")
+  "logoutBusy" (i18n "comments_logout_busy")
+  "logoutFailed" (i18n "comments_logout_failed")
+  "githubProfile" (i18n "comments_github_profile")
+  "authOk" (i18n "comments_auth_ok")
+  "authAccessDenied" (i18n "comments_auth_access_denied")
+  "authExchangeFailed" (i18n "comments_auth_oauth_exchange_failed")
+  "authProfileFailed" (i18n "comments_auth_profile_failed")
+  "authMissingCode" (i18n "comments_auth_missing_code")
+  "authInvalidState" (i18n "comments_auth_invalid_state")
+  "authInvalidReturnTo" (i18n "comments_auth_invalid_return_to")
+  "authNotConfigured" (i18n "comments_auth_not_configured")
+  "authGenericError" (i18n "comments_auth_generic_error")
+  "sessionError" (i18n "comments_session_error")
+  "networkError" (i18n "comments_network_error")
+  "loginUnavailable" (i18n "comments_login_unavailable")
+  "serviceInvalid" (i18n "comments_service_invalid")
+  "serviceInvalidHint" (i18n "comments_service_invalid_hint")
+-}}
+<div id="account-slot" class="account account--interactive" data-account-root
+  data-backend-url="{{ if $configured }}{{ $backend }}{{ end }}"
+  data-login-url="{{ $loginURL }}"
+  data-configured="{{ if $configured }}true{{ else }}false{{ end }}"
+  data-config-state="{{ if $configured }}configured{{ else if $invalid }}invalid{{ else }}unconfigured{{ end }}"
+  data-account-state="idle">
+  <span class="account__icon account__icon--guest" data-account-icon aria-hidden="true">{{ partial "icon.html" (dict "name" "user" "size" 16) }}</span>
+  <div class="account__copy" data-account-copy>
+    {{- if $configured }}
+    <span class="account__status" id="account-status">{{ i18n "comments_account_guest" }}</span>
+    <a class="account__signin" href="{{ $loginURL }}" data-account-login title="{{ i18n "comments_login_link" }}">{{ i18n "comments_login_short" }}</a>
+    {{- else }}
+    <span class="account__status" id="account-status" title="{{ if $invalid }}{{ i18n "comments_service_invalid" }}{{ else }}{{ i18n "comments_login_unconfigured" }}{{ end }}">{{ i18n "comments_account_guest" }}</span>
+    {{- end }}
+  </div>
+</div>
+<script type="application/json" id="account-strings">{{ $accountStrings | jsonify | replaceRE "</" "<\\/" | safeJS }}</script>

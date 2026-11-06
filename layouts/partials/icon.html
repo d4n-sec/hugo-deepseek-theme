@@ -1,0 +1,94 @@
+{{- /* Hand-drawn icons except for the Lucide pin; see THIRD_PARTY_NOTICES.md. */ -}}
+{{- $name := . -}}
+{{- $size := 16 -}}
+{{- $extraClass := "" -}}
+{{- if reflect.IsMap . -}}
+  {{- $name = .name | default "link" -}}
+  {{- $size = .size | default 16 -}}
+  {{- $extraClass = .class | default "" -}}
+{{- end -}}
+<svg class="icon{{ with $extraClass }} {{ . }}{{ end }}" width="{{ $size }}" height="{{ $size }}" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  {{- if eq $name "home" -}}
+    <path d="M3.25 8.7 10 3.25l6.75 5.45v7.05a1 1 0 0 1-1 1h-3.4v-4.7H7.65v4.7h-3.4a1 1 0 0 1-1-1Z"/>
+  {{- else if eq $name "user" -}}
+    <circle cx="10" cy="6.8" r="3.05"/><path d="M4.4 16.6c.4-3.05 2.55-4.7 5.6-4.7s5.2 1.65 5.6 4.7"/>
+  {{- else if eq $name "pencil" -}}
+    <path d="m4 14.8.8-3.4L13.3 2.9a1.5 1.5 0 0 1 2.1 0l1.7 1.7a1.5 1.5 0 0 1 0 2.1l-8.5 8.5-3.4.8Z"/><path d="m12.3 3.9 3.8 3.8M5.2 11.1l3.7 3.7"/>
+  {{- else if eq $name "code" -}}
+    <path d="m7.1 5.8-4.2 4.2 4.2 4.2M12.9 5.8l4.2 4.2-4.2 4.2M11.2 3.8 8.8 16.2"/>
+  {{- else if eq $name "github" -}}
+    <circle cx="6.2" cy="5.2" r="2.1"/><circle cx="6.2" cy="14.8" r="2.1"/><circle cx="14" cy="7.2" r="2.1"/><path d="M6.2 7.3v5.4M8.3 7.2h1.8a3.9 3.9 0 0 0 3.9-3.9"/>
+  {{- else if eq $name "link" -}}
+    <path d="M8.2 11.8 11.8 8.2"/><path d="M7 14H5.8a3.3 3.3 0 0 1 0-6.6h2.5M13 6h1.2a3.3 3.3 0 1 1 0 6.6h-2.5"/>
+  {{- else if eq $name "external" -}}
+    <path d="M11.4 3.4h5.2v5.2M16.2 3.8l-6.7 6.7"/><path d="M15.4 11.7v3.8a1 1 0 0 1-1 1H4.2a1 1 0 0 1-1-1V5.3a1 1 0 0 1 1-1h3.9"/>
+  {{- else if eq $name "menu" -}}
+    <path d="M3.4 6.4h13.2M3.4 13.6h13.2"/>
+  {{- else if eq $name "panel-close" -}}
+    <rect x="2.7" y="3.4" width="14.6" height="13.2" rx="2.2"/><path d="M8.2 3.7v12.6M13.2 8.2 11 10l2.2 1.8"/>
+  {{- else if eq $name "panel-open" -}}
+    <rect x="2.7" y="3.4" width="14.6" height="13.2" rx="2.2"/><path d="M8.2 3.7v12.6M11 8.2 13.2 10 11 11.8"/>
+  {{- else if eq $name "chevron-down" -}}
+    <path d="m6 8 4 4 4-4"/>
+  {{- else if eq $name "chevron-right" -}}
+    <path d="m8 6 4 4-4 4"/>
+  {{- else if eq $name "timeline" -}}
+    <path d="M5 4.2v11.6"/><circle cx="5" cy="7" r="1.45"/><circle cx="5" cy="13" r="1.45"/><path d="M8.6 7h7.2M8.6 13h5.4"/>
+  {{- else if eq $name "tag" -}}
+    <path d="M3.4 8.8V4.3a1 1 0 0 1 1-1h4.5l7.6 7.6a1.4 1.4 0 0 1 0 2l-3.6 3.6a1.4 1.4 0 0 1-2 0Z"/><circle cx="7" cy="7" r="1.15"/>
+  {{- else if eq $name "search" -}}
+    <circle cx="8.7" cy="8.7" r="5.1"/><path d="m12.6 12.6 3.6 3.6"/>
+  {{- else if eq $name "pin" -}}
+    <g transform="scale(0.8333333333)" stroke-width="2" data-icon-credit="Lucide" data-icon-license="{{ "licenses/lucide-pin.txt" | relURL }}"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></g>
+  {{- else if eq $name "folder" -}}
+    <path d="M2.8 6.2a1.6 1.6 0 0 1 1.6-1.6h3.3l1.5 1.7h6.4a1.6 1.6 0 0 1 1.6 1.6v6.5a1.6 1.6 0 0 1-1.6 1.6H4.4a1.6 1.6 0 0 1-1.6-1.6Z"/>
+  {{- else if eq $name "copy" -}}
+    <rect x="7" y="7" width="9.4" height="9.4" rx="1.7"/><path d="M13 7V5.3a1.7 1.7 0 0 0-1.7-1.7H5.3a1.7 1.7 0 0 0-1.7 1.7v6a1.7 1.7 0 0 0 1.7 1.7H7"/>
+  {{- else if eq $name "share" -}}
+    <circle cx="14.5" cy="5" r="2.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="14.5" cy="15" r="2.2"/><path d="m7.5 9 5-2.9M7.5 11l5 2.9"/>
+  {{- else if eq $name "thumb-up" -}}
+    <path d="M6.3 9.1 9.4 3.2c.3-.6.9-.9 1.5-.7.8.2 1.3 1 1.2 1.8l-.5 3h3.2c1.2 0 2 .9 1.8 2l-.9 5.1a2 2 0 0 1-2 1.6H6.3M3 8.3h3.3v9.1H3Z"/>
+  {{- else if eq $name "thumb-down" -}}
+    <path d="M13.7 10.9 10.6 16.8c-.3.6-.9.9-1.5.7-.8-.2-1.3-1-1.2-1.8l.5-3H5.2c-1.2 0-2-.9-1.8-2l.9-5.1a2 2 0 0 1 2-1.6h6.9M17 2.6h-3.3v9.1H17Z"/>
+  {{- else if eq $name "clock" -}}
+    <circle cx="10" cy="10" r="6.9"/><path d="M10 6.1V10l2.7 1.7"/>
+  {{- else if eq $name "comment" -}}
+    <path d="M3.2 9.8c0-3.4 3-6.1 6.8-6.1s6.8 2.7 6.8 6.1-3 6.1-6.8 6.1c-.8 0-1.5-.1-2.2-.3l-3.1 1.1.8-2.7a5.8 5.8 0 0 1-2.3-4.2Z"/>
+  {{- else if eq $name "qq" -}}
+    <path d="M10 2.6c-2.6 0-4.2 2.3-4.2 5.2v1.3l-1.6 3.1c-.3.7-.1 1.2.4 1.3.4.1.8-.1 1.2-.5.4 2.9 1.8 4.3 4.2 4.3s3.8-1.4 4.2-4.3c.4.4.8.6 1.2.5.5-.1.7-.6.4-1.3l-1.6-3.1V7.8C14.2 4.9 12.6 2.6 10 2.6Z"/><path d="m8 17-1.4 1M12 17l1.4 1M9 9.5l1 .7 1-.7"/><circle cx="8.2" cy="7.5" r=".45" fill="currentColor" stroke="none"/><circle cx="11.8" cy="7.5" r=".45" fill="currentColor" stroke="none"/>
+  {{- else if eq $name "login" -}}
+    <path d="M12.2 5V3.8a1.4 1.4 0 0 0-1.4-1.4H4.4A1.4 1.4 0 0 0 3 3.8v12.4a1.4 1.4 0 0 0 1.4 1.4h6.4a1.4 1.4 0 0 0 1.4-1.4V15M8.2 10h9M14.4 7l3 3-3 3"/>
+  {{- else if eq $name "x" -}}
+    <path d="M4.3 3.7 16 16.3M16 3.7 4.3 16.3"/>
+  {{- else if eq $name "rss" -}}
+    <circle cx="5.2" cy="14.8" r="1.2" fill="currentColor" stroke="none"/><path d="M4 9.8a6.2 6.2 0 0 1 6.2 6.2M4 5.1a10.9 10.9 0 0 1 10.9 10.9"/>
+  {{- else if eq $name "mail" -}}
+    <rect x="2.8" y="4.4" width="14.4" height="11.2" rx="2"/><path d="m3.7 5.8 6.3 4.6 6.3-4.6"/>
+  {{- else if eq $name "arrow-right" -}}
+    <path d="M3.5 10h13M11.5 5l5 5-5 5"/>
+  {{- else if eq $name "arrow-left" -}}
+    <path d="M16.5 10h-13M8.5 5l-5 5 5 5"/>
+  {{- else if eq $name "check" -}}
+    <path d="m4 10.2 3.7 3.7L16 5.9"/>
+  {{- else if eq $name "info" -}}
+    <circle cx="10" cy="10" r="7"/><path d="M10 9v4.2M10 6.6v.2"/>
+  {{- else if eq $name "plus" -}}
+    <path d="M10 4.2v11.6M4.2 10h11.6"/>
+  {{- else if eq $name "send" -}}
+    <path d="m3.4 4.2 13.2 5.8-13.2 5.8 1.9-5.8Z"/><path d="M5.3 10h7.8"/>
+  {{- else if eq $name "alert" -}}
+    <path d="M10 3.3 17 16H3Z"/><path d="M10 7.4v4M10 13.9v.2"/>
+  {{- else if eq $name "spark" -}}
+    <path d="M10 2.9c.4 3.7 2.4 5.7 6.1 6.1-3.7.4-5.7 2.4-6.1 6.1-.4-3.7-2.4-5.7-6.1-6.1C7.6 8.6 9.6 6.6 10 2.9Z"/>
+  {{- else if eq $name "image" -}}
+    <rect x="2.8" y="4.2" width="14.4" height="11.6" rx="2"/><circle cx="7.1" cy="8.2" r="1.25"/><path d="m4.3 14.4 4.2-4.1 2.7 2.6 1.7-1.7 2.8 3.2"/>
+  {{- else if eq $name "quote" -}}
+    <path d="M7.7 6.2C5.1 6.9 3.5 8.8 3.5 11.1v2.9h4.1v-4.1H5.3c.2-1.1 1.1-2 2.4-2.5Z"/><path d="M14.7 6.2c-2.6.7-4.2 2.6-4.2 4.9v2.9h4.1v-4.1h-2.3c.2-1.1 1.1-2 2.4-2.5Z"/>
+  {{- else if eq $name "panel-comments" -}}
+    <rect x="2.7" y="3.4" width="14.6" height="13.2" rx="2.2"/><path d="M7.9 3.7v12.6"/><path d="M9.9 7.1h4.9a1.1 1.1 0 0 1 1.1 1.1v2.8a1.1 1.1 0 0 1-1.1 1.1h-2.4l-1.9 1.6v-1.6h-.6a1.1 1.1 0 0 1-1.1-1.1V8.2a1.1 1.1 0 0 1 1.1-1.1Z"/>
+  {{- else if eq $name "sliders" -}}
+    <path d="M3.2 5.7h2.7M9 5.7h7.8M3.2 10h8.1M14.4 10h2.4M3.2 14.3h4.8M11 14.3h5.8"/><circle cx="7.5" cy="5.7" r="1.4"/><circle cx="12.9" cy="10" r="1.4"/><circle cx="9.4" cy="14.3" r="1.4"/>
+  {{- else -}}
+    <path d="M8.2 11.8 11.8 8.2"/><path d="M7 14H5.8a3.3 3.3 0 0 1 0-6.6h2.5M13 6h1.2a3.3 3.3 0 1 1 0 6.6h-2.5"/>
+  {{- end -}}
+</svg>

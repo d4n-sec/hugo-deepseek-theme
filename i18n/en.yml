@@ -1,0 +1,35 @@
+# Threadline reader, trajectory, and article action strings — English
+# Hugo merges this additional .yml table with the base i18n/en.yaml for the en
+# language. Hugo cannot treat reader.en.yaml as a language file: it requires a
+# valid language code or locale as the filename.
+
+reader_streaming: "The article is appearing gradually…"
+skip_typing: "Skip typing"
+reader_complete: "The complete article is visible."
+
+copy_article: "Copy title and text"
+copy_success: "Copied the article title and text."
+copy_failure: "Could not copy. Select the article text and copy it manually."
+share_success: "Opened the system share sheet."
+share_cancelled: "Sharing cancelled."
+share_fallback_success: "System sharing is unavailable, so the article link was copied."
+share_fallback_failure: "Sharing is unavailable and the link could not be copied."
+
+reactions_pending: "Likes and dislikes will be enabled when the comments service is connected. Nothing is recorded yet."
+
+trajectory_loading: "Organising the article structure…"
+trajectory_overview: "Article structure overview"
+trajectory_structure: "Article structure"
+trajectory_hint: "Segments use the actual character count of the article. Choose any segment to return to its place in the text."
+trajectory_title: "Title"
+trajectory_preamble: "Preamble"
+trajectory_article: "Article"
+trajectory_untitled: "(Untitled section)"
+trajectory_characters: "characters"
+trajectory_segments: "segments"
+trajectory_order: "Item"
+trajectory_jump: "Jump to this location"
+trajectory_empty_excerpt: "(No text in this section)"
+trajectory_title_excerpt: "Article title bubble"
+trajectory_empty_title: "This article has no body yet"
+trajectory_empty_hint: "There is no article structure to show. Return to Chat for the article information."

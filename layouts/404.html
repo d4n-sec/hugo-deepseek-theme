@@ -1,0 +1,14 @@
+{{ define "main" }}
+<div class="not-found-page reading-column reading-column--narrow">
+  <div class="not-found__code" aria-hidden="true">404</div>
+  <h1 class="not-found__title">{{ i18n "page_not_found" }}</h1>
+  <p class="not-found__body">{{ i18n "page_not_found_body" }}</p>
+  <div class="not-found__actions">
+    <a class="button button--primary" href="{{ site.Home.RelPermalink }}">{{ i18n "back_to_home" }}</a>
+    {{- $sections := site.Params.mainSections | default (slice "posts") -}}
+    {{- with site.GetPage "section" (index $sections 0) }}
+    <a class="button button--quiet" href="{{ .RelPermalink }}">{{ i18n "back_to_articles" }}</a>
+    {{- end }}
+  </div>
+</div>
+{{ end }}

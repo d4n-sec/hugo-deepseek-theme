@@ -1,0 +1,406 @@
+{{- $pageCommentsDisabled := and (isset .Params "comments") (eq (printf "%v" .Params.comments) "false") -}}
+{{- if not $pageCommentsDisabled -}}
+{{- $comments := site.Params.comments | default dict -}}
+{{- $backend := trim ($comments.backendURL | default "") " " -}}
+{{- $backend = replaceRE "/+$" "" $backend -}}
+{{- $looksLikeURL := or (hasPrefix $backend "http://") (hasPrefix $backend "https://") -}}
+{{- $configured := and (ne $backend "") $looksLikeURL -}}
+{{- $invalid := and (ne $backend "") (not $looksLikeURL) -}}
+{{- $configState := cond $configured "configured" (cond $invalid "invalid" "unconfigured") -}}
+{{- $commentID := "" -}}
+{{- with .Params.comment_id -}}
+  {{- $commentID = trim (printf "%v" .) " " -}}
+{{- end -}}
+{{- $generatedID := false -}}
+{{- if not $commentID -}}
+  {{- /* Stable fallback: hash the source file path, not the title. Renaming or
+  retitling the article keeps this value; moving the file changes it. Explicit
+  front matter comment_id always wins. */ -}}
+  {{- $idSeed := .RelPermalink | default .Permalink -}}
+  {{- with .File -}}
+    {{- $idSeed = .Path -}}
+  {{- end -}}
+  {{- $commentID = printf "auto-%s" (substr (sha256 $idSeed) 0 24) -}}
+  {{- $generatedID = true -}}
+{{- end -}}
+{{- $returnTo := .Permalink | default site.Home.Permalink -}}
+{{- $loginURL := "" -}}
+{{- if $configured -}}
+  {{- $loginURL = printf "%s/api/auth/github?returnTo=%s" $backend (urlquery $returnTo) -}}
+{{- end -}}
+{{- $published := .PublishDate | default .Date -}}
+{{- $updated := .Lastmod | default $published -}}
+{{- $dateFormat := site.Params.dateFormat | default "2006-01-02" -}}
+{{- $strings := dict
+  "publicWarning" (i18n "comments_public_warning")
+  "scopeInfoPublic" (i18n "comments_scope_info_public")
+  "scopeInfoCommenter" (i18n "comments_scope_info_commenter")
+  "scopeInfoBlogger" (i18n "comments_scope_info_blogger")
+  "scopeInfoNote" (i18n "comments_scope_info_note")
+  "visibilityCommenter" (i18n "comments_visibility_commenter")
+  "visibilityBlogger" (i18n "comments_visibility_blogger")
+  "visibilityCommenterTitle" (i18n "comments_visibility_commenter_title")
+  "visibilityBloggerTitle" (i18n "comments_visibility_blogger_title")
+  "effectOn" (i18n "comments_effect_on")
+  "effectBadge" (i18n "comments_effect_badge")
+  "loading" (i18n "comments_loading")
+  "loaded" (i18n "comments_loaded")
+  "emptyTitle" (i18n "comments_empty_title")
+  "emptyHint" (i18n "comments_empty_hint")
+  "retry" (i18n "comments_retry")
+  "errorTitle" (i18n "comments_error_title")
+  "errorGeneric" (i18n "comments_error_generic")
+  "serviceInvalid" (i18n "comments_service_invalid")
+  "serviceInvalidHint" (i18n "comments_service_invalid_hint")
+  "serviceUnconfigured" (i18n "comments_service_unconfigured")
+  "serviceUnconfiguredHint" (i18n "comments_service_unconfigured_hint")
+  "serviceDisabled" (i18n "comments_service_disabled")
+  "serviceDisabledHint" (i18n "comments_service_disabled_hint")
+  "sessionError" (i18n "comments_session_error")
+  "draftRestored" (i18n "comments_draft_restored")
+  "emptyError" (i18n "comments_empty_error")
+  "tooLongError" (i18n "comments_too_long_error")
+  "sending" (i18n "comments_sending")
+  "send" (i18n "comments_send")
+  "publishSuccess" (i18n "comments_publish_success")
+  "publishFiltered" (i18n "comments_publish_filtered")
+  "publishHidden" (i18n "comments_publish_hidden")
+  "loginRequired" (i18n "comments_login_required")
+  "loginExpired" (i18n "comments_login_expired")
+  "loginUnavailable" (i18n "comments_login_unavailable")
+  "loginPending" (i18n "comments_login_pending")
+  "loginShort" (i18n "comments_login_short")
+  "attachmentUnavailable" (i18n "comments_attachment_unavailable")
+  "attachmentLogin" (i18n "comments_attachment_login")
+  "attachmentAuthUnavailable" (i18n "comments_attachment_auth_unavailable")
+  "attachmentReady" (i18n "comments_attachment_ready")
+  "attachmentUploading" (i18n "comments_attachment_uploading")
+  "attachmentSuccess" (i18n "comments_attachment_success")
+  "attachmentFailed" (i18n "comments_attachment_failed")
+  "attachmentTooLarge" (i18n "comments_attachment_too_large")
+  "attachmentInvalidType" (i18n "comments_attachment_invalid_type")
+  "attachmentDisabledError" (i18n "comments_attachment_disabled_error")
+  "attachmentPublic" (i18n "comments_attachment_public")
+  "attachmentCancelled" (i18n "comments_attachment_cancelled")
+  "unavailable" (i18n "comments_unavailable")
+  "reactionsLoading" (i18n "comments_reactions_loading")
+  "reactionsReady" (i18n "comments_reactions_ready")
+  "reactionsLogin" (i18n "comments_reactions_login")
+  "reactionsAuthUnconfigured" (i18n "comments_reactions_auth_unconfigured")
+  "reactionsUnavailable" (i18n "comments_reactions_unavailable")
+  "reactionsBusy" (i18n "comments_reactions_busy")
+  "reactionsSaved" (i18n "comments_reactions_saved")
+  "reactionsError" (i18n "comments_reactions_error")
+  "reactionsSessionError" (i18n "comments_reactions_session_error")
+  "reactionPartial" (i18n "comments_reaction_partial")
+  "reactionUnknown" (i18n "comments_reaction_unknown")
+  "reactionConflict" (i18n "comments_reaction_conflict")
+  "networkError" (i18n "comments_network_error")
+  "errorAuth" (i18n "comments_error_auth")
+  "errorSession" (i18n "comments_error_session")
+  "errorCsrf" (i18n "comments_error_csrf")
+  "errorOrigin" (i18n "comments_error_origin")
+  "errorPermission" (i18n "comments_error_permission")
+  "errorNotFound" (i18n "comments_error_not_found")
+  "errorDuplicate" (i18n "comments_error_duplicate")
+  "errorValidation" (i18n "comments_error_validation")
+  "errorRateLimited" (i18n "comments_error_rate_limited")
+  "errorRateLimitedRetry" (i18n "comments_error_rate_limited_retry")
+  "errorServer" (i18n "comments_error_server")
+  "errorGithubUnavailable" (i18n "comments_error_github_unavailable")
+  "errorGithub" (i18n "comments_error_github")
+  "errorUnknown" (i18n "comments_error_unknown")
+  "errorUploadFailed" (i18n "comments_error_upload_failed")
+  "errorAttachmentsDisabled" (i18n "comments_error_attachments_disabled")
+  "errorTooLarge" (i18n "comments_error_too_large")
+  "errorInvalidType" (i18n "comments_error_invalid_type")
+  "panelOpen" (i18n "comments_panel_open")
+  "panelClose" (i18n "comments_panel_close")
+  "panelTitle" (i18n "comments_panel_title")
+  "panelLabel" (i18n "comments_panel_label")
+  "panelCount" (i18n "comments_panel_count")
+  "unconfiguredDock" (i18n "comments_unconfigured_dock")
+  "unconfiguredShort" (i18n "comments_unconfigured_short")
+  "scopeShort" (i18n "comments_scope_short")
+  "quoteLabel" (i18n "comments_quote_label")
+  "quoteRemove" (i18n "comments_quote_remove")
+  "quoteUnlocated" (i18n "comments_quote_unlocated")
+  "quoteLocated" (i18n "comments_quote_located")
+  "quoteView" (i18n "comments_quote_view")
+  "quoteContext" (i18n "comments_quote_context")
+  "selectionAction" (i18n "comments_selection_action")
+  "selectionTooLong" (i18n "comments_selection_too_long")
+  "refreshFailed" (i18n "comments_refresh_failed")
+  "duplicateConfirmed" (i18n "comments_duplicate_confirmed")
+  "comments_selection_action" (i18n "comments_selection_action")
+  "comments_selection_too_long" (i18n "comments_selection_too_long")
+  "comments_quote_label" (i18n "comments_quote_label")
+  "comments_quote_remove" (i18n "comments_quote_remove")
+  "comments_quote_unlocated" (i18n "comments_quote_unlocated")
+  "comments_quote_located" (i18n "comments_quote_located")
+  "comments_quote_view" (i18n "comments_quote_view")
+  "comments_quote_context" (i18n "comments_quote_context")
+-}}
+{{- if $configured -}}
+<aside id="comments-panel" class="comments-panel" data-comments-root data-comments-panel
+  data-comment-id="{{ $commentID }}"
+  data-comment-id-generated="{{ if $generatedID }}true{{ else }}false{{ end }}"
+  data-article-url="{{ .Permalink }}"
+  data-article-title="{{ .Title }}"
+  data-comments-configured="true"
+  data-config-state="configured"
+  data-backend-url="{{ $backend }}"
+  data-login-url="{{ $loginURL }}"
+  data-comments-panel-state="closed"
+  aria-labelledby="comments-panel-title"
+  aria-modal="false"
+  aria-hidden="true"
+  aria-busy="true"
+  role="dialog"
+  hidden>
+  <div class="comments-panel__sheet">
+    <header class="comments-panel__head">
+      <div class="comments-panel__heading">
+        <span class="comments-panel__mark" aria-hidden="true">{{ partial "icon.html" (dict "name" "comment" "size" 15) }}</span>
+        <div class="comments-panel__heading-copy">
+          <h2 class="comments-panel__title" id="comments-panel-title">{{ i18n "comments_panel_title" }}</h2>
+          <p class="comments-panel__count" data-comments-count aria-live="polite">—</p>
+        </div>
+      </div>
+      <div class="comments-panel__actions">
+        <button class="comments-panel__pin" type="button" data-comments-panel-pin aria-pressed="false"
+          aria-label="{{ i18n "comments_panel_pin" }}" title="{{ i18n "comments_panel_pin" }}"
+          data-label-pin="{{ i18n "comments_panel_pin" }}" data-label-unpin="{{ i18n "comments_panel_unpin" }}">
+          {{ partial "icon.html" (dict "name" "pin" "size" 16) }}
+        </button>
+        <button class="comments-panel__close" type="button" data-comments-panel-close
+          aria-label="{{ i18n "comments_panel_close" }}" title="{{ i18n "comments_panel_close" }}">
+          {{ partial "icon.html" (dict "name" "x" "size" 16) }}
+        </button>
+      </div>
+    </header>
+    <p class="sr-only" data-comments-status role="status" aria-live="polite">{{ i18n "comments_loading" }}</p>
+
+    <div class="comments-panel__scroll" data-comments-panel-scroll>
+      <div class="comments__loading" data-comments-loading>
+        <span class="sr-only">{{ i18n "comments_loading" }}</span>
+        <div class="comment-skeleton" aria-hidden="true">
+          <span class="comment-skeleton__avatar"></span>
+          <span class="comment-skeleton__lines"><i></i><i></i><i></i></span>
+        </div>
+        <div class="comment-skeleton" aria-hidden="true">
+          <span class="comment-skeleton__avatar"></span>
+          <span class="comment-skeleton__lines"><i></i><i></i></span>
+        </div>
+      </div>
+
+      <div class="comments__state comments__state--empty" data-comments-empty hidden>
+        <span class="comments__state-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "comment" "size" 16) }}</span>
+        <h3 class="comments__state-title">{{ i18n "comments_empty_title" }}</h3>
+        <p class="comments__state-copy">{{ i18n "comments_empty_hint" }}</p>
+      </div>
+
+      <div class="comments__state comments__state--error" data-comments-error hidden>
+        <span class="comments__state-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "alert" "size" 16) }}</span>
+        <h3 class="comments__state-title" data-comments-error-title>{{ i18n "comments_error_title" }}</h3>
+        <p class="comments__state-copy" data-comments-error-message>{{ i18n "comments_error_generic" }}</p>
+        <button class="comments__retry" type="button" data-comments-retry>
+          {{ partial "icon.html" (dict "name" "arrow-right" "size" 13) }}
+          <span>{{ i18n "comments_retry" }}</span>
+        </button>
+      </div>
+
+      <ol class="comments__list" data-comment-list hidden></ol>
+
+    </div>
+  </div>
+</aside>
+<div class="comments-panel__backdrop" data-comments-panel-backdrop hidden></div>
+
+<div class="comment-dock" data-comment-dock data-dock-ready="true">
+  <form class="comment-composer" data-comment-form novalidate aria-label="{{ i18n "comments_composer_label" }}">
+    <div class="comment-composer__field">
+      <label class="sr-only" for="comment-body">{{ i18n "comments_composer_label" }}</label>
+      <textarea class="comment-composer__input" id="comment-body" name="body" rows="1" maxlength="5000"
+        placeholder="{{ i18n "comments_placeholder" }}"
+        aria-describedby="comments-validation"
+        data-comment-body disabled></textarea>
+    </div>
+
+    <div class="comment-composer__quote" data-composer-quote hidden>
+      <div class="comment-composer__quote-main">
+        <span class="comment-composer__quote-label">
+          {{ partial "icon.html" (dict "name" "quote" "size" 12) }}
+          <span>{{ i18n "comments_quote_label" }}</span>
+        </span>
+        <p class="comment-composer__quote-text" data-composer-quote-text></p>
+      </div>
+      <button class="comment-composer__quote-remove" type="button" data-composer-quote-remove
+        aria-label="{{ i18n "comments_quote_remove" }}" title="{{ i18n "comments_quote_remove" }}">
+        {{ partial "icon.html" (dict "name" "x" "size" 13) }}
+      </button>
+    </div>
+
+    <div class="comment-composer__bar">
+      <div class="comment-composer__bar-left">
+        <div class="comment-composer__insert" data-insert-root>
+          <button class="comment-composer__attach" type="button" data-insert-toggle disabled
+            aria-label="{{ i18n "comments_insert_menu" }}" title="{{ i18n "comments_insert_menu" }}"
+            aria-haspopup="dialog" aria-expanded="false" aria-controls="comment-insert-menu">
+            {{ partial "icon.html" (dict "name" "plus" "size" 17) }}
+          </button>
+          <div class="comments__insert-menu" id="comment-insert-menu" data-insert-menu role="dialog"
+            aria-label="{{ i18n "comments_insert_menu" }}" hidden>
+            <p class="comments__insert-heading">{{ i18n "comments_emoji_group" }}</p>
+            <div class="comments__emoji-grid" role="group" aria-label="{{ i18n "comments_emoji_group" }}">
+              {{- range (slice "😀" "😂" "😊" "🥰" "🤔" "😮" "😢" "😎" "👍" "❤️" "🎉" "🙏") }}
+              <button class="comments__emoji" type="button" data-insert-emoji="{{ . }}" aria-label="{{ i18n "comments_insert_emoji" }} {{ . }}">{{ . }}</button>
+              {{- end }}
+            </div>
+            <button class="comments__insert-attachment" type="button" data-attachment-button disabled>
+              {{ partial "icon.html" (dict "name" "plus" "size" 14) }}
+              <span>{{ i18n "comments_attachment" }}</span>
+            </button>
+            <p class="comments__insert-note" data-attachment-menu-note></p>
+          </div>
+        </div>
+        <div class="comment-composer__scope" data-visibility="public" data-scope-open="false">
+          <select id="comment-visibility" name="visibility" data-comment-visibility tabindex="-1" aria-hidden="true" hidden disabled>
+            <option value="public" selected>{{ i18n "comments_scope_public" }}</option>
+            <option value="commenter">{{ i18n "comments_scope_commenter" }}</option>
+            <option value="blogger">{{ i18n "comments_scope_blogger" }}</option>
+          </select>
+          <div class="comments__scope-menu" id="comment-scope-menu" data-scope-menu role="listbox" aria-label="{{ i18n "comments_scope_label" }}" hidden>
+            <button class="comments__scope-option" type="button" role="option" data-scope-choice="public" aria-selected="true" tabindex="-1"><span>{{ i18n "comments_scope_public" }}</span>{{ partial "icon.html" (dict "name" "check" "size" 13) }}</button>
+            <button class="comments__scope-option" type="button" role="option" data-scope-choice="commenter" aria-selected="false" tabindex="-1"><span>{{ i18n "comments_scope_commenter" }}</span>{{ partial "icon.html" (dict "name" "check" "size" 13) }}</button>
+            <button class="comments__scope-option" type="button" role="option" data-scope-choice="blogger" aria-selected="false" tabindex="-1"><span>{{ i18n "comments_scope_blogger" }}</span>{{ partial "icon.html" (dict "name" "check" "size" 13) }}</button>
+          </div>
+          <button class="comments__scope-toggle" type="button" data-scope-toggle aria-haspopup="listbox" aria-expanded="false" aria-controls="comment-scope-menu" aria-label="{{ i18n "comments_scope_label" }}: {{ i18n "comments_scope_public" }}" disabled>
+            <span data-scope-current>{{ i18n "comments_scope_public" }}</span>{{ partial "icon.html" (dict "name" "chevron-down" "size" 12) }}
+          </button>
+          <details class="comments__scope-info">
+            <summary class="comments__info-button" aria-label="{{ i18n "comments_scope_info_label" }}" title="{{ i18n "comments_scope_info_label" }}">
+              <svg class="icon" width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4.2M10 13.4v.2"/></svg>
+              <span class="sr-only">{{ i18n "comments_scope_info_label" }}</span>
+            </summary>
+            <div class="comments__scope-panel">
+              <p data-scope-explanation="public">{{ i18n "comments_scope_info_public" }}</p>
+              <p data-scope-explanation="commenter" hidden>{{ i18n "comments_scope_info_commenter" }}</p>
+              <p data-scope-explanation="blogger" hidden>{{ i18n "comments_scope_info_blogger" }}</p>
+              <p class="comments__scope-panel-note">{{ i18n "comments_scope_info_note" }}</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="comment-composer__bar-right">
+        <span class="comment-composer__length" data-comment-length aria-label="{{ i18n "comments_length_label" }}">0 / 5000</span>
+        <button class="comments__send" type="submit" data-comment-send aria-label="{{ i18n "comments_send" }}" title="{{ i18n "comments_send" }}" disabled>
+          {{ partial "icon.html" (dict "name" "send" "size" 17) }}
+          <span class="sr-only" data-send-label>{{ i18n "comments_send" }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="comments__attachment-progress" data-attachment-progress-wrap hidden>
+      <progress max="100" value="0" data-attachment-progress>{{ i18n "comments_attachment_uploading" }}</progress>
+      <span data-attachment-progress-text>0%</span>
+    </div>
+
+    <p class="comments__composer-success" data-comment-success role="status" aria-live="polite" hidden></p>
+    <p class="comments__validation" id="comments-validation" data-comment-validation role="alert"></p>
+    <p class="comments__composer-status" data-comment-status role="status" aria-live="polite"></p>
+    <span class="sr-only" data-attachment-note aria-live="polite"></span>
+    <input type="file" data-attachment-input hidden>
+  </form>
+
+  {{- if not .IsHome }}
+  <footer class="comment-stats" aria-label="{{ i18n "comments_stats_label" }}">
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "attention" }}</span>
+      <span class="comment-stat__value">{{ .ReadingTime }} {{ i18n "minutes" }}</span>
+      <span class="comment-stat__aside">（{{ i18n "comments_stats_estimated" }}）</span>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_published" }}</span>
+      <time class="comment-stat__value" datetime="{{ $published.Format "2006-01-02T15:04:05Z07:00" }}">{{ $published.Format $dateFormat }}</time>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_comments" }}</span>
+      <span class="comment-stat__value" data-stat-comments title="{{ i18n "comments_unavailable" }}">—</span>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_likes" }}</span>
+      <span class="comment-stat__value" data-stat-likes title="{{ i18n "comments_unavailable" }}">—</span>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_updated" }}</span>
+      <time class="comment-stat__value" datetime="{{ $updated.Format "2006-01-02T15:04:05Z07:00" }}">{{ $updated.Format $dateFormat }}</time>
+    </span>
+  </footer>
+  {{- end }}
+
+  <dialog class="comments__dialog" data-visibility-dialog aria-labelledby="comments-confirm-title" aria-describedby="comments-confirm-description">
+    <div class="comments__dialog-inner">
+      <div class="comments__dialog-head">
+        <span class="comments__dialog-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "alert" "size" 15) }}</span>
+        <h2 id="comments-confirm-title">{{ i18n "comments_confirm_title" }}</h2>
+      </div>
+      <p class="comments__dialog-warning" id="comments-confirm-description">{{ i18n "comments_public_warning" }}</p>
+      <p class="comments__dialog-scope">
+        <span>{{ i18n "comments_confirm_scope" }}</span>
+        <strong data-confirm-scope>{{ i18n "comments_scope_public" }}</strong>
+      </p>
+      <div class="comments__dialog-actions">
+        <button class="comments__dialog-cancel" type="button" data-confirm-cancel>{{ i18n "comments_confirm_cancel" }}</button>
+        <button class="comments__dialog-continue" type="button" data-confirm-continue>{{ i18n "comments_confirm_continue" }}</button>
+      </div>
+    </div>
+  </dialog>
+</div>
+{{- else -}}
+<div class="comment-dock comment-dock--unconfigured" data-comment-dock data-dock-ready="true">
+  <div class="comment-dock__placeholder" data-comments-root
+    data-comments-configured="false"
+    data-config-state="{{ $configState }}"
+    data-service-message="{{ if $invalid }}{{ i18n "comments_service_invalid" }}{{ else }}{{ i18n "comments_service_unconfigured" }}{{ end }}">
+    <span class="comment-dock__placeholder-mark" aria-hidden="true">{{ partial "icon.html" (dict "name" "info" "size" 14) }}</span>
+    <span class="comment-dock__placeholder-text">
+      {{- if $invalid -}}
+        {{ i18n "comments_service_invalid_hint" }}
+      {{- else -}}
+        {{ i18n "comments_unconfigured_dock" }}
+      {{- end -}}
+    </span>
+  </div>
+
+  {{- if not .IsHome }}
+  <footer class="comment-stats" aria-label="{{ i18n "comments_stats_label" }}">
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "attention" }}</span>
+      <span class="comment-stat__value">{{ .ReadingTime }} {{ i18n "minutes" }}</span>
+      <span class="comment-stat__aside">（{{ i18n "comments_stats_estimated" }}）</span>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_published" }}</span>
+      <time class="comment-stat__value" datetime="{{ $published.Format "2006-01-02T15:04:05Z07:00" }}">{{ $published.Format $dateFormat }}</time>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_comments" }}</span>
+      <span class="comment-stat__value" data-stat-comments title="{{ i18n "comments_unavailable" }}">—</span>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_likes" }}</span>
+      <span class="comment-stat__value" data-stat-likes title="{{ i18n "comments_unavailable" }}">—</span>
+    </span>
+    <span class="comment-stat">
+      <span class="comment-stat__label">{{ i18n "comments_stat_updated" }}</span>
+      <time class="comment-stat__value" datetime="{{ $updated.Format "2006-01-02T15:04:05Z07:00" }}">{{ $updated.Format $dateFormat }}</time>
+    </span>
+  </footer>
+  {{- end }}
+</div>
+{{- end -}}
+<script type="application/json" id="comments-strings">{{ $strings | jsonify | replaceRE "</" "<\\/" | safeJS }}</script>
+
+{{- end -}}

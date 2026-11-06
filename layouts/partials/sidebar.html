@@ -1,0 +1,76 @@
+{{- $author := site.Params.author | default dict -}}
+{{- $authorName := $author.name | default site.Title -}}
+{{- $authorRole := $author.role | default "" -}}
+{{- $avatar := $author.avatar | default "" -}}
+{{- $navItems := site.Params.nav -}}
+{{- if not $navItems -}}
+  {{- $navItems = slice
+    (dict "nameKey" "home" "url" "/" "icon" "home")
+    (dict "nameKey" "about" "url" "/about/" "icon" "user")
+  -}}
+{{- end -}}
+<aside id="site-sidebar" class="sidebar" aria-label="{{ i18n "sidebar_label" }}">
+  <div class="sidebar__inner">
+    <div class="sidebar__head">
+      <a class="sidebar__identity" href="{{ site.Home.RelPermalink }}" aria-label="{{ $authorName }}">
+        {{- if $avatar }}
+        <img class="avatar avatar--sidebar" src="{{ partial "site-url.html" $avatar }}" alt="" width="30" height="30">
+        {{- else }}
+        <span class="avatar avatar--sidebar avatar--fallback" aria-hidden="true">{{ substr $authorName 0 1 }}</span>
+        {{- end }}
+        <span class="sidebar__identity-copy">
+          <span class="sidebar__name">{{ $authorName }}</span>
+          {{- with $authorRole }}
+          <span class="sidebar__role">{{ . }}</span>
+          {{- end }}
+        </span>
+      </a>
+      <button class="icon-button sidebar__collapse" type="button" data-sidebar-collapse aria-controls="site-sidebar" aria-expanded="true" aria-label="{{ i18n "sidebar_collapse" }}" data-label-expanded="{{ i18n "sidebar_collapse" }}" data-label-collapsed="{{ i18n "sidebar_expand" }}">
+        <span class="sidebar__collapse-icon">{{ partial "icon.html" "panel-close" }}</span>
+        <span class="sidebar__expand-icon">{{ partial "icon.html" "panel-open" }}</span>
+      </button>
+      <button class="icon-button sidebar__drawer-close" type="button" data-sidebar-close aria-label="{{ i18n "close_menu" }}" title="{{ i18n "close_menu" }}">
+        {{ partial "icon.html" "x" }}
+      </button>
+    </div>
+
+    {{ partial "social-links.html" (dict "variant" "sidebar") }}
+
+    <nav class="sidebar-nav" aria-label="{{ i18n "site_navigation" }}">
+      <ul class="sidebar-nav__list" role="list">
+        {{- range $navItems -}}
+          {{- $label := .name | default "" -}}
+          {{- with .nameKey -}}
+            {{- $translated := i18n . -}}
+            {{- if $translated }}{{ $label = $translated }}{{ end -}}
+          {{- end -}}
+          {{- if not $label }}{{ $label = .url }}{{ end -}}
+          {{- $itemURL := .url | default "/" -}}
+          {{- $isHTTP := or (hasPrefix $itemURL "http://") (hasPrefix $itemURL "https://") -}}
+          {{- $href := partial "site-url.html" $itemURL -}}
+          {{- $isActive := false -}}
+          {{- if not $isHTTP -}}
+            {{- if eq $itemURL "/" -}}
+              {{- $isActive = $.IsHome -}}
+            {{- else -}}
+              {{- $isActive = hasPrefix $.RelPermalink $href -}}
+            {{- end -}}
+          {{- end -}}
+          <li class="sidebar-nav__item">
+            <a class="sidebar-nav__link{{ if $isActive }} is-active{{ end }}" href="{{ $href }}" title="{{ $label }}"{{ if $isActive }} aria-current="page"{{ end }}{{ if $isHTTP }} target="_blank" rel="noopener noreferrer"{{ end }}>
+              <span class="sidebar-nav__icon">{{ with .icon }}{{ partial "icon.html" . }}{{ else }}{{ partial "icon.html" "link" }}{{ end }}</span>
+              <span class="sidebar-nav__label">{{ $label }}</span>
+              {{- if $isHTTP }}<span class="sidebar-nav__external">{{ partial "icon.html" "external" }}<span class="sr-only">{{ i18n "open_external" }}</span></span>{{ end -}}
+            </a>
+          </li>
+        {{- end -}}
+      </ul>
+    </nav>
+
+    {{ partial "article-index.html" . }}
+
+    <div class="sidebar__footer">
+      {{ partial "account.html" . }}
+    </div>
+  </div>
+</aside>

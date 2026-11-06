@@ -1,0 +1,11 @@
+{{- $page := .page -}}
+{{- $currentPage := .currentPage -}}
+{{- $dateFormat := .dateFormat | default "2006-01-02" -}}
+{{- $published := $page.PublishDate | default $page.Date -}}
+{{- $isCurrent := eq $page.RelPermalink $currentPage.RelPermalink -}}
+<li class="article-row{{ if $isCurrent }} is-selected{{ end }}" data-article-row data-article-key="{{ $page.RelPermalink }}">
+  <a class="article-row__link" href="{{ $page.RelPermalink }}"{{ if $isCurrent }} aria-current="page"{{ end }} title="{{ $page.Title }}">
+    <span class="article-row__title">{{ $page.Title }}</span>
+    <time class="article-row__date" datetime="{{ $published.Format "2006-01-02T15:04:05Z07:00" }}" title="{{ $published.Format "2006-01-02" }}">{{ $published.Format $dateFormat }}</time>
+  </a>
+</li>

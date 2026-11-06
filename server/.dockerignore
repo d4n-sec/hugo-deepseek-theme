@@ -1,0 +1,13 @@
+# Keep secrets, mutable data, tests, and local state out of the image context.
+.env
+.env.*
+data/
+tests/
+__pycache__/
+*.py[cod]
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+.venv/

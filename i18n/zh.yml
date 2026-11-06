@@ -1,0 +1,35 @@
+# Threadline reader, trajectory, and article action strings — Chinese (default UI language)
+# Hugo merges this additional .yml table with the base i18n/zh.yaml for the zh
+# language. Hugo cannot treat reader.zh.yaml as a language file: it requires a
+# valid language code or locale as the filename.
+
+reader_streaming: "正文正在逐步显示…"
+skip_typing: "跳过逐字显示"
+reader_complete: "正文已完整显示。"
+
+copy_article: "复制标题与正文"
+copy_success: "已复制文章标题与正文。"
+copy_failure: "复制失败，请手动选择正文复制。"
+share_success: "已打开系统分享。"
+share_cancelled: "已取消分享。"
+share_fallback_success: "系统分享不可用，已复制文章链接。"
+share_fallback_failure: "分享不可用，复制链接也失败了。"
+
+reactions_pending: "点赞与点踩将在评论服务接入后启用，当前不会记录任何操作。"
+
+trajectory_loading: "正在整理文章结构…"
+trajectory_overview: "文章结构概览"
+trajectory_structure: "文章结构"
+trajectory_hint: "按正文实际字符数分段；选择任一段可回到正文中的对应位置。"
+trajectory_title: "标题"
+trajectory_preamble: "正文前言"
+trajectory_article: "正文"
+trajectory_untitled: "（无标题章节）"
+trajectory_characters: "字符"
+trajectory_segments: "段"
+trajectory_order: "序号"
+trajectory_jump: "跳转到该位置"
+trajectory_empty_excerpt: "（本段没有正文）"
+trajectory_title_excerpt: "文章标题气泡"
+trajectory_empty_title: "这篇文章还没有正文"
+trajectory_empty_hint: "没有可展示的文章结构。回到 Chat 可以看到文章信息。"

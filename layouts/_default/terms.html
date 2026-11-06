@@ -1,0 +1,33 @@
+{{ define "main" }}
+{{- $terms := .Data.Terms.Alphabetical -}}
+{{- $pageTitle := .Title | default (i18n "tags") -}}
+{{- if eq .Data.Plural "tags" }}{{ $pageTitle = i18n "tags" }}{{ end -}}
+<div class="archive-page reading-column">
+  <header class="archive-header">
+    <p class="archive-header__eyebrow">{{ i18n "articles" }}</p>
+    <div class="archive-header__title-row">
+      <h1 class="archive-header__title">{{ $pageTitle }}</h1>
+      <span class="archive-header__count">{{ len $terms }}</span>
+    </div>
+    {{- with .Description }}<p class="archive-header__description">{{ . }}</p>{{ end }}
+    {{- with .Content }}<div class="archive-header__content">{{ . }}</div>{{ end }}
+  </header>
+
+  {{- if $terms }}
+  <div class="terms-grid">
+    {{- range $terms }}
+      <a class="term-card" href="{{ .Page.RelPermalink }}">
+      <span class="term-card__icon">{{ partial "icon.html" "tag" }}</span>
+      <span class="term-card__name">{{ .Page.LinkTitle }}</span>
+      <span class="term-card__count">{{ i18n "article_count" .Count }}</span>
+    </a>
+    {{- end }}
+  </div>
+  {{- else }}
+  <div class="empty-state empty-state--page">
+    <p class="empty-state__title">{{ i18n "no_articles" }}</p>
+    <p class="empty-state__hint">{{ i18n "no_posts_yet" }}</p>
+  </div>
+  {{- end }}
+</div>
+{{ end }}

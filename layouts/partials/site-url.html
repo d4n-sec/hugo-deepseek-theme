@@ -1,0 +1,11 @@
+{{- $value := . | default "" -}}
+{{- $base := site.Home.RelPermalink -}}
+{{- if or (hasPrefix $value "https://") (hasPrefix $value "http://") (hasPrefix $value "mailto:") (hasPrefix $value "tel:") (hasPrefix $value "#") -}}
+  {{- return $value -}}
+{{- else if eq $value "/" -}}
+  {{- return $base -}}
+{{- else if and (ne $base "/") (hasPrefix $value $base) -}}
+  {{- return $value -}}
+{{- else -}}
+  {{- return ((strings.TrimPrefix "/" $value) | relLangURL) -}}
+{{- end -}}

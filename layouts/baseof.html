@@ -1,0 +1,56 @@
+<!doctype html>
+<html class="no-js" lang="{{ site.Language.Locale | default site.Language.Lang }}" dir="{{ site.Language.Direction | default "ltr" }}">
+<head>
+{{ partial "head.html" . }}
+</head>
+{{- $sections := site.Params.mainSections | default (slice "posts") -}}
+{{- $comments := site.Params.comments | default dict -}}
+{{- $reader := site.Params.reader | default dict -}}
+{{- $author := site.Params.author | default dict -}}
+{{- $typing := true -}}
+{{- if isset $reader "typing" }}{{ $typing = $reader.typing }}{{ end -}}
+{{- $siteConfig := dict
+  "baseURL" site.Home.Permalink
+  "lang" site.Language.Lang
+  "languageCode" (site.Language.Locale | default site.Language.Lang)
+  "dateFormat" (site.Params.dateFormat | default "2006-01-02")
+  "isArticle" (and .IsPage (in $sections .Section) (ne .Layout "page"))
+  "author" (dict
+    "name" ($author.name | default "")
+    "avatar" ($author.avatar | default "")
+  )
+  "reader" (dict
+    "typing" $typing
+    "typingSpeed" ($reader.typingSpeed | default 18)
+  )
+  "comments" (dict
+    "repository" ($comments.repository | default "")
+    "backendURL" ($comments.backendURL | default "")
+    "blogger" ($comments.blogger | default "")
+    "issueLabel" ($comments.issueLabel | default "")
+    "attachments" ($comments.attachments | default false)
+  )
+-}}
+{{- $siteConfigJSON := $siteConfig | jsonify | replaceRE "</" "<\\/" -}}
+<body class="site-body">
+  <a class="skip-link" href="#main">{{ i18n "skip_to_content" }}</a>
+  <div class="app-shell">
+    {{ partial "sidebar.html" . }}
+    <button class="sidebar-backdrop" type="button" data-sidebar-backdrop aria-label="{{ i18n "close_menu" }}" hidden></button>
+    <div class="app-main">
+      {{ partial "topbar.html" . }}
+      <main id="main" class="main-content" tabindex="-1">
+        {{ block "main" . }}{{ end }}
+      </main>
+    </div>
+  </div>
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script type="application/json" id="site-config">{{ $siteConfigJSON | safeJS }}</script>
+  {{- $scripts := resources.Match "js/*.js" -}}
+  {{- if $scripts -}}
+    {{- $scripts = sort $scripts "Name" -}}
+    {{- $bundle := $scripts | resources.Concat "js/threadline.js" | minify | fingerprint -}}
+    <script defer src="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}"></script>
+  {{- end }}
+</body>
+</html>

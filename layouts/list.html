@@ -1,0 +1,61 @@
+{{ define "main" }}
+{{- $pages := .RegularPages.ByPublishDate.Reverse -}}
+{{- $sections := site.Params.mainSections | default (slice "posts") -}}
+{{- $mainSection := index $sections 0 -}}
+{{- $archive := site.GetPage "section" $mainSection -}}
+{{- $archiveURL := site.Home.RelPermalink -}}
+{{- with $archive }}{{ $archiveURL = .RelPermalink }}{{ end -}}
+{{- $isTerm := eq .Kind "term" -}}
+{{- $eyebrow := i18n "articles" -}}
+{{- if $isTerm -}}
+  {{- $eyebrow = printf "%s · %s" (i18n "tag") .Title -}}
+{{- else if eq .Section "notes" -}}
+  {{- $eyebrow = i18n "notes" -}}
+{{- end -}}
+<div class="archive-page reading-column">
+  <header class="archive-header">
+    <p class="archive-header__eyebrow">{{ $eyebrow }}</p>
+    <div class="archive-header__title-row">
+      <h1 class="archive-header__title">{{ .Title }}</h1>
+      <span class="archive-header__count">{{ i18n "article_count" (len $pages) }}</span>
+    </div>
+    {{- with .Description }}<p class="archive-header__description">{{ . }}</p>{{ end }}
+    {{- with .Content }}<div class="archive-header__content">{{ . }}</div>{{ end }}
+  </header>
+
+  {{- if $pages }}
+  <ol class="archive-list" role="list">
+    {{- range $pages }}
+    <li class="archive-entry">
+      <article>
+        <div class="archive-entry__meta">
+          <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format (site.Params.dateFormat | default "2006-01-02") }}</time>
+          <span aria-hidden="true">·</span>
+          <span>{{ .ReadingTime }} {{ i18n "minute_short" }}</span>
+          {{- with .GetTerms "tags" }}
+          <span class="archive-entry__tags">
+            {{- range . }}<a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
+          </span>
+          {{- end }}
+        </div>
+        <h2 class="archive-entry__title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+        {{- with .Summary }}
+        <p class="archive-entry__summary">{{ . | plainify | replaceRE `\s+` " " | truncate 190 }}</p>
+        {{- end }}
+        <a class="archive-entry__more" href="{{ .RelPermalink }}" tabindex="-1" aria-hidden="true">
+          <span>{{ i18n "read_article" }}</span>
+          {{ partial "icon.html" "arrow-right" }}
+        </a>
+      </article>
+    </li>
+    {{- end }}
+  </ol>
+  {{- else }}
+  <div class="empty-state empty-state--page">
+    <p class="empty-state__title">{{ i18n "no_articles" }}</p>
+    <p class="empty-state__hint">{{ i18n "empty_section_hint" }}</p>
+    <a class="button button--quiet" href="{{ $archiveURL }}">{{ i18n "browse_all_posts" }}</a>
+  </div>
+  {{- end }}
+</div>
+{{ end }}

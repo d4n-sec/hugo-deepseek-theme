@@ -1,0 +1,45 @@
+{{- $pageCommentsDisabled := and (isset .Params "comments") (eq (printf "%v" .Params.comments) "false") -}}
+{{- $sections := site.Params.mainSections | default (slice "posts") -}}
+{{- $isArticle := and .IsPage (in $sections .Section) (ne .Layout "page") -}}
+{{- $pageLabel := .Title -}}
+{{- if .IsHome -}}
+  {{- $pageLabel = i18n "home" -}}
+{{- else if eq .Kind "404" -}}
+  {{- $pageLabel = i18n "page_not_found" -}}
+{{- else if and (eq .Kind "section") (eq .Section "notes") -}}
+  {{- $pageLabel = i18n "notes" -}}
+{{- end -}}
+{{- $commentsPanel := false -}}
+{{- if and (or $isArticle .IsHome) (not $pageCommentsDisabled) -}}
+  {{- $comments := site.Params.comments | default dict -}}
+  {{- $backend := trim ($comments.backendURL | default "") " " -}}
+  {{- $backend = replaceRE "/+$" "" $backend -}}
+  {{- $commentsPanel = and (ne $backend "") (or (hasPrefix $backend "http://") (hasPrefix $backend "https://")) -}}
+{{- end -}}
+<header class="topbar{{ if $isArticle }} topbar--article{{ else if $commentsPanel }} topbar--home-comments{{ end }}">
+  <div class="topbar__leading">
+    <button class="icon-button topbar__menu" type="button" data-sidebar-menu aria-controls="site-sidebar" aria-expanded="false" aria-label="{{ i18n "open_menu" }}" data-label-open="{{ i18n "open_menu" }}" data-label-close="{{ i18n "close_menu" }}">
+      <span class="topbar__menu-open">{{ partial "icon.html" "menu" }}</span>
+      <span class="topbar__menu-close">{{ partial "icon.html" "x" }}</span>
+    </button>
+    <span class="topbar__title">{{ $pageLabel }}</span>
+  </div>
+  <div class="topbar__center">
+    {{- if $isArticle }}
+    <div class="view-tabs" role="tablist" aria-label="{{ i18n "reading_views" }}" data-view-tabs>
+      <button class="view-tabs__tab is-active" id="view-tab-chat" type="button" role="tab" aria-selected="true" aria-controls="chat-panel" data-view-tab="chat">{{ i18n "chat" }}</button>
+      <button class="view-tabs__tab" id="view-tab-trajectory" type="button" role="tab" aria-selected="false" aria-controls="trajectory-panel" data-view-tab="trajectory" tabindex="-1">{{ i18n "trajectory" }}</button>
+    </div>
+    {{- end }}
+  </div>
+  {{- if $commentsPanel }}
+  <div class="topbar__trailing">
+    <button class="icon-button topbar__comments" type="button" data-comments-panel-toggle
+      aria-controls="comments-panel" aria-expanded="false"
+      aria-label="{{ i18n "comments_panel_open" }}" title="{{ i18n "comments_panel_open" }}"
+      data-label-open="{{ i18n "comments_panel_open" }}" data-label-close="{{ i18n "comments_panel_close" }}">
+      {{ partial "icon.html" (dict "name" "panel-comments" "size" 17) }}
+    </button>
+  </div>
+  {{- end }}
+</header>

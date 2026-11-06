@@ -1,0 +1,58 @@
+baseURL = "https://example.org/"
+title = "A small corner of the web"
+theme = "hugo-deepseek-theme"
+defaultContentLanguage = "en"
+enableRobotsTXT = true
+
+[permalinks]
+  post = "/p/:slug/"
+  page = "/:slug/"
+
+[params]
+  description = "A conversation-inspired space for notes and ideas."
+  mainSections = ["post"]
+  dateFormat = "2006-01-02"
+  listDateFormat = "01 · 02"
+
+  [params.author]
+    name = "Alex"
+    role = "Curious about the world"
+    bio = "A little place to write, learn, and share."
+
+  [params.social]
+    rss = true
+
+  [params.reader]
+    typing = true
+    typingSpeed = 18
+
+  # Leave empty to use the theme without a comments server.
+  [params.comments]
+    backendURL = ""
+    repository = ""
+    blogger = ""
+    attachments = false
+
+[[params.nav]]
+  nameKey = "home"
+  url = "/"
+  icon = "home"
+
+[[params.nav]]
+  nameKey = "about"
+  url = "/about/"
+  icon = "user"
+
+[[params.nav]]
+  name = "Links"
+  url = "/links/"
+  icon = "link"
+
+[markup.goldmark.extensions.passthrough]
+  enable = true
+  [markup.goldmark.extensions.passthrough.delimiters]
+    block = [["$$", "$$"], ["\\[", "\\]"]]
+    inline = [["$", "$"], ["\\(", "\\)"]]
+
+[markup.highlight]
+  noClasses = false

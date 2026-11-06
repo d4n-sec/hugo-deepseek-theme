@@ -1,0 +1,13 @@
+# Hugo theme metadata
+name = "Hugo DeepSeek Theme"
+license = "MIT"
+licenselink = "https://github.com/d4n-sec/hugo-deepseek-theme/blob/main/LICENSE"
+description = "An independent conversation-inspired Hugo blog theme with a streaming reader and optional GitHub Issues comments."
+homepage = "https://github.com/d4n-sec/hugo-deepseek-theme"
+tags = ["blog", "personal", "minimal", "responsive", "reading"]
+features = ["responsive", "streaming reader", "article trajectory", "article timeline", "tag browsing", "accessible navigation", "optional GitHub Issues comments"]
+min_version = "0.169.0"
+
+[author]
+  name = "d4n-sec and contributors"
+  homepage = "https://github.com/d4n-sec"

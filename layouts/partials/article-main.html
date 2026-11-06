@@ -1,0 +1,92 @@
+{{- $author := site.Params.author | default dict -}}
+{{- $authorName := $author.name | default site.Title -}}
+{{- $avatar := $author.avatar | default "" -}}
+{{- $published := .PublishDate | default .Date -}}
+{{- $updated := .Lastmod | default $published -}}
+{{- $readerStrings := dict
+  "readerComplete" (i18n "reader_complete")
+  "thinking" (i18n "thinking")
+  "skipAnimation" (i18n "skip_animation")
+  "copySuccess" (i18n "copy_success")
+  "copyFailure" (i18n "copy_failure")
+  "shareSuccess" (i18n "share_success")
+  "shareCancelled" (i18n "share_cancelled")
+  "shareFallbackSuccess" (i18n "share_fallback_success")
+  "shareFallbackFailure" (i18n "share_fallback_failure")
+  "trajectoryOverview" (i18n "trajectory_overview")
+  "trajectoryStructure" (i18n "trajectory_structure")
+  "trajectoryHint" (i18n "trajectory_hint")
+  "trajectoryTitle" (i18n "trajectory_title")
+  "trajectoryPreamble" (i18n "trajectory_preamble")
+  "trajectoryArticle" (i18n "trajectory_article")
+  "trajectoryUntitled" (i18n "trajectory_untitled")
+  "trajectoryCharacters" (i18n "trajectory_characters")
+  "trajectorySegments" (i18n "trajectory_segments")
+  "trajectoryOrder" (i18n "trajectory_order")
+  "trajectoryJump" (i18n "trajectory_jump")
+  "trajectoryEmptyExcerpt" (i18n "trajectory_empty_excerpt")
+  "trajectoryTitleExcerpt" (i18n "trajectory_title_excerpt")
+-}}
+{{- $readerStringsJSON := $readerStrings | jsonify | replaceRE "</" "<\\/" -}}
+<article class="article-page" data-article-page
+  data-reading-minutes="{{ .ReadingTime }}"
+  data-published="{{ $published.Format "2006-01-02T15:04:05Z07:00" }}"
+  data-updated="{{ $updated.Format "2006-01-02T15:04:05Z07:00" }}"
+  data-article-title="{{ .Title }}"
+  data-comment-id="{{ .Params.comment_id | default "" }}"
+  data-article-url="{{ .Permalink }}">
+  <div class="reading-column" data-article-reading-column>
+    <header class="article-header">
+      <div class="article-header__meta">
+        <time datetime="{{ $published.Format "2006-01-02T15:04:05Z07:00" }}">{{ $published.Format (site.Params.dateFormat | default "2006-01-02") }}</time>
+        <span aria-hidden="true">·</span>
+        <span>{{ .ReadingTime }} {{ i18n "minute_short" }}</span>
+      </div>
+      <div class="article-title-row">
+        <div class="article-title-bubble" data-article-title-target>
+          <h1 class="article-title">{{ .Title }}</h1>
+          {{- with .Description }}
+          <p class="article-title__description">{{ . }}</p>
+          {{- end }}
+        </div>
+      </div>
+    </header>
+
+    <div class="message message--assistant article-message">
+      <div class="message__avatar-wrap">
+        {{- if $avatar }}
+        <img class="avatar avatar--message" src="{{ partial "site-url.html" $avatar }}" alt="" width="30" height="30">
+        {{- else }}
+        <span class="avatar avatar--message avatar--fallback" aria-hidden="true">{{ substr $authorName 0 1 }}</span>
+        {{- end }}
+      </div>
+      <div class="message__content">
+        <div class="message__byline">
+          <span class="message__author">{{ $authorName }}</span>
+          <span class="message__reading">{{ i18n "attention" }} · {{ .ReadingTime }} {{ i18n "minutes" }}</span>
+        </div>
+
+        <div class="reader-stream" data-reader-stream hidden>
+          <span class="reader-stream__status" role="status" aria-live="polite"></span>
+          <button class="reader-stream__skip" type="button" data-reader-skip>
+            {{ i18n "skip_animation" }}
+            {{ partial "icon.html" (dict "name" "arrow-right" "size" 13) }}
+          </button>
+        </div>
+        <p class="sr-only" data-reader-announcer role="status" aria-live="polite"></p>
+
+        <div class="article-views">
+          <section class="article-view" id="chat-panel" role="tabpanel" aria-labelledby="view-tab-chat" data-view-panel="chat">
+            <div class="article-prose" data-article-body>
+              {{ .Content }}
+            </div>
+            {{ partial "message-actions.html" . }}
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{ partial "trajectory.html" . }}
+  {{ partial "comments.html" . }}
+</article>
+<script type="application/json" id="article-strings">{{ $readerStringsJSON | safeJS }}</script>
