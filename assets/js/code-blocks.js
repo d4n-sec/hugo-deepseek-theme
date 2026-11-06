@@ -66,6 +66,9 @@
     var resetTimer = null;
     button.addEventListener('click', function () {
       if (typeof DSH.copyText !== 'function') return;
+      if (DSH.reader && typeof DSH.reader.finish === 'function') {
+        DSH.reader.finish({ announce: false });
+      }
       DSH.copyText(codeText(block)).then(function () {
         button.setAttribute('aria-label', strings.copied);
         button.setAttribute('title', strings.copied);

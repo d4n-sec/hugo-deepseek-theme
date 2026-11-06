@@ -2,6 +2,8 @@
 """Build the theme in a fresh example site without site-level overrides."""
 
 import os
+import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -48,6 +50,12 @@ class ThemeBuildTests(unittest.TestCase):
     def html(self, relative):
         return (self.output / relative).read_text(encoding="utf-8")
 
+    def reader_config(self, relative):
+        match = re.search(r'<script type="application/json" id="site-config">(.*?)</script>',
+                          self.html(relative), re.DOTALL)
+        self.assertIsNotNone(match)
+        return json.loads(match.group(1))["reader"]
+
     def test_fresh_site_and_subpath(self):
         self.build("--baseURL", "https://example.org/blog/")
         home = self.html("index.html")
@@ -61,6 +69,7 @@ class ThemeBuildTests(unittest.TestCase):
         self.assertTrue((self.output / "links/index.html").exists())
         self.assertTrue((self.output / "images/favicon.svg").exists())
         self.assertIn('data-comments-configured="false"', home)
+        self.assertEqual(self.reader_config("index.html")["mode"], "constant")
         parser = TimelineParser()
         parser.feed(home)
         self.assertEqual(parser.groups, [("time:2025-05", "false"), ("time:2025-04", "true")])
@@ -93,6 +102,32 @@ class ThemeBuildTests(unittest.TestCase):
         self.assertIn('data-search-result-label="文章"', home)
         self.assertIn('>首页</span>', home)
         self.assertIn('>关于</span>', home)
+
+    def test_reader_mode_is_site_wide(self):
+        overlay = self.site / "reader.toml"
+        for mode in ("constant", "capped", "instant"):
+            with self.subTest(mode=mode):
+                overlay.write_text(f'[params.reader]\nmode = "{mode}"\n', encoding="utf-8")
+                self.build("--config", "hugo.toml,reader.toml")
+                self.assertEqual(self.reader_config("index.html")["mode"], mode)
+                self.assertEqual(self.reader_config("p/hello-world/index.html")["mode"], mode)
+
+    def test_invalid_reader_mode_fails_build(self):
+        overlay = self.site / "reader.toml"
+        overlay.write_text('[params.reader]\nmode = "typo"\n', encoding="utf-8")
+        result = subprocess.run([HUGO, "--source", str(self.site), "--destination", str(self.output),
+                                 "--cacheDir", str(self.root / "cache"), "--noBuildLock",
+                                 "--config", "hugo.toml,reader.toml"], text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("params.reader.mode must be constant, capped, or instant", result.stderr)
+
+    def test_legacy_disable_without_mode(self):
+        config = self.site / "hugo.toml"
+        text = config.read_text(encoding="utf-8")
+        text = text.replace('mode = "constant" # constant | capped | instant', 'typing = false')
+        config.write_text(text, encoding="utf-8")
+        self.build()
+        self.assertEqual(self.reader_config("p/hello-world/index.html")["mode"], "instant")
 
 
 if __name__ == "__main__":

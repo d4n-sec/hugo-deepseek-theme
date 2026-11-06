@@ -55,7 +55,7 @@ hugo server --source exampleSite --themesDir ../.. --theme hugo-deepseek-theme
 ```sh
 git init  # 如果站点还不是 Git 仓库
 git submodule add https://github.com/d4n-sec/hugo-deepseek-theme.git themes/hugo-deepseek-theme
-git -C themes/hugo-deepseek-theme checkout 0.0.1
+git -C themes/hugo-deepseek-theme checkout 0.0.2
 ```
 
 参考 [exampleSite/hugo.toml](exampleSite/hugo.toml) 配置站点，并将其中的
@@ -109,6 +109,26 @@ tags = ["notes"]
 未设置时主题会从源文件路径生成 ID；移动或重命名文件会使这个自动 ID 改变。
 页面前置数据设置 `comments = false` 可关闭该页面的评论。
 
+## 文章显示模式
+
+在站点配置中为整个博客选择一种模式，重新构建后生效：
+
+```toml
+[params.reader]
+  mode = "constant" # constant | capped | instant
+  typingSpeed = 18
+```
+
+- `constant`（默认）：正文、代码和表格以一致的速度逐步显示，不限制最长时间。
+  默认速度约为每秒 88 个 Unicode 字符；长文章可以点击跳过动画。
+- `capped`：保留原来的限时播放方式，较长的文章会在约 25.7 秒内显示完成。
+- `instant`：直接显示全文，不播放动画。
+
+`typingSpeed` 越大播放越快；`instant` 模式忽略该设置。图片和公式等内容仍会整块显示。
+模式只在站点配置中设置，不提供单篇文章配置或页面内切换。带 `#` 的链接和启用系统
+“减少动态效果”的访客始终直接看到全文。已有配置未设置 `mode` 时，`typing = false`
+仍表示直接显示；显式设置 `mode` 优先。
+
 ## 评论服务
 
 评论是可选功能。主题仓库内包含一个 Python 服务，它通过 GitHub OAuth 登录并使用
@@ -137,6 +157,9 @@ GitHub App 必须设为公开，其他 GitHub 用户才可授权；仓库安装�
 HUGO_BIN=hugo python3 tests/test_build.py
 cd server && python3 -m unittest discover -s tests -v
 ```
+
+如需在浏览器中验证播放模式，可先启动示例站，再用 `playwright-core` 和本机 Chromium
+运行 `tests/test_reader.cjs`；这些工具只用于测试，不参与主题构建。
 
 ## 许可
 

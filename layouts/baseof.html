@@ -7,8 +7,15 @@
 {{- $comments := site.Params.comments | default dict -}}
 {{- $reader := site.Params.reader | default dict -}}
 {{- $author := site.Params.author | default dict -}}
-{{- $typing := true -}}
-{{- if isset $reader "typing" }}{{ $typing = $reader.typing }}{{ end -}}
+{{- $readerMode := "constant" -}}
+{{- if isset $reader "mode" -}}
+  {{- $readerMode = lower (printf "%v" $reader.mode) -}}
+{{- else if and (isset $reader "typing") (not $reader.typing) -}}
+  {{- $readerMode = "instant" -}}
+{{- end -}}
+{{- if not (in (slice "constant" "capped" "instant") $readerMode) -}}
+  {{- errorf "params.reader.mode must be constant, capped, or instant; got %q" $readerMode -}}
+{{- end -}}
 {{- $siteConfig := dict
   "baseURL" site.Home.Permalink
   "lang" site.Language.Lang
@@ -20,7 +27,8 @@
     "avatar" ($author.avatar | default "")
   )
   "reader" (dict
-    "typing" $typing
+    "mode" $readerMode
+    "typing" (ne $readerMode "instant")
     "typingSpeed" ($reader.typingSpeed | default 18)
   )
   "comments" (dict

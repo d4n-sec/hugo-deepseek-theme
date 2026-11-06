@@ -36,6 +36,7 @@
   function initTyping(article, body, strings) {
     var THINKING_DELAY = 500;
     var readerConfig = (DSH.config && DSH.config.reader) || {};
+    var readerMode = readerConfig.mode || (readerConfig.typing === false ? 'instant' : 'constant');
     var streamPanel = article.querySelector('[data-reader-stream]');
     var skipButton = article.querySelector('[data-reader-skip]');
     var announcer = article.querySelector('[data-reader-announcer]');
@@ -203,15 +204,16 @@
       }
     }
 
-    function collect(node) {
+    function collect(node, preserveWhitespace) {
       Array.prototype.forEach.call(node.childNodes, function (child) {
         if (child.nodeType === Node.TEXT_NODE) {
           var value = child.nodeValue || '';
-          if (!/\S/.test(value)) return;
+          if (!value || (!preserveWhitespace && !/\S/.test(value))) return;
           var record = {
             node: child,
             original: value,
             characters: Array.from(value),
+            revealWhitespace: !!preserveWhitespace,
             shown: 0
           };
           records.push(record);
@@ -222,7 +224,19 @@
         var tag = child.tagName.toLowerCase();
         if (tag === 'script' || tag === 'style' || tag === 'noscript' || tag === 'template') return;
         markPending(child);
-        if (!child.childNodes.length || child.matches('pre, .highlight, table, img, picture, video, audio, iframe, object, embed, svg, canvas, figure, [data-reader-math]')) {
+        if (readerMode === 'constant' && child.matches('.highlight')) {
+          // Hugo may put line numbers in a separate <pre>; only stream the code.
+          var codeNodes = child.querySelectorAll('pre code');
+          if (codeNodes.length) {
+            collect(codeNodes[codeNodes.length - 1], true);
+            return;
+          }
+          units.push({ type: 'atomic', element: child, weight: atomicWeight(child) });
+          return;
+        }
+        var atomicSelector = 'img, picture, video, audio, iframe, object, embed, svg, canvas, figure, [data-reader-math]';
+        if (readerMode !== 'constant') atomicSelector += ', pre, .highlight, table';
+        if (!child.childNodes.length || child.matches(atomicSelector)) {
           units.push({
             type: 'atomic',
             element: child,
@@ -230,7 +244,7 @@
           });
           return;
         }
-        collect(child);
+        collect(child, preserveWhitespace);
       });
     }
 
@@ -251,7 +265,7 @@
         var take = Math.min(remaining, allowance);
         if (take > 0) {
           record.node.nodeValue += record.characters.slice(record.shown, record.shown + take).join('');
-          if (/\S/.test(record.node.nodeValue)) revealPath(record.node.parentElement);
+          if (record.revealWhitespace || /\S/.test(record.node.nodeValue)) revealPath(record.node.parentElement);
           record.shown += take;
           consumed += take;
         }
@@ -268,8 +282,8 @@
       try {
         var elapsed = now - startedAt;
         var progress = duration > 0 ? Math.min(1, elapsed / duration) : 1;
-        var eased = 1 - Math.pow(1 - progress, 1.18);
-        reveal(Math.floor(totalWeight * eased));
+        var revealed = readerMode === 'capped' ? 1 - Math.pow(1 - progress, 1.18) : progress;
+        reveal(Math.floor(totalWeight * revealed));
         if (progress >= 1) {
           finish({ announce: true });
           return;
@@ -297,7 +311,7 @@
 
     function start() {
       if (state !== 'idle') return;
-      if (readerConfig.typing !== true || hasFragment()) {
+      if (readerMode === 'instant' || hasFragment()) {
         setState('static');
         return;
       }
@@ -320,7 +334,11 @@
         var speed = Number(readerConfig.typingSpeed);
         if (!isFinite(speed) || speed <= 0) speed = 18;
         var charactersPerSecond = Math.min(325, Math.max(40, speed * 7));
-        duration = Math.min(18000, Math.max(4800, (totalWeight / charactersPerSecond) * 1000)) / 0.7;
+        if (readerMode === 'capped') {
+          duration = Math.min(18000, Math.max(4800, (totalWeight / charactersPerSecond) * 1000)) / 0.7;
+        } else {
+          duration = (totalWeight / (charactersPerSecond * 0.7)) * 1000;
+        }
         records.forEach(function (record) {
           record.node.nodeValue = '';
         });

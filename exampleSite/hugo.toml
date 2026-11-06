@@ -23,7 +23,7 @@ enableRobotsTXT = true
     rss = true
 
   [params.reader]
-    typing = true
+    mode = "constant" # constant | capped | instant
     typingSpeed = 18
 
   # Leave empty to use the theme without a comments server.
