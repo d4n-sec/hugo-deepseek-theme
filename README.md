@@ -6,6 +6,8 @@
 An independent, conversation-inspired Hugo blog theme with a streaming reader,
 search, an article timeline, and optional GitHub Issues comments.
 
+**在线演示 / Live demo：** [blog.dansec.vip](https://blog.dansec.vip/)
+
 ![主题预览：左侧文章时间线和对话式首页](images/screenshot.png)
 
 预览展示启用评论后的界面；示例站默认不连接评论服务。
